@@ -1,0 +1,148 @@
+.refs {
+    float: right;
+    padding: 5px 5px 5px 5px;
+    color: darkslategray;
+    font-family: Arial, sans-serif;
+    text-decoration: none;
+}
+
+.logo {
+    padding-top: 120px;
+    clear: both;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 280px;
+}
+
+.search {
+    padding-top: 25px;
+    text-align: center;
+}
+
+.search_box {
+    border: 1px solid lightgray;
+    border-radius: 20px;
+    height: 30px;
+    width: 550px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 5px 12px 5px 12px;
+}
+
+.search_box:hover {
+    box-shadow: 0px 0px 4px 4px #f1f1f1;
+}
+
+.search_box .icon {
+    vertical-align: middle;
+    width: 16px;
+}
+
+.search_box .text {
+    border: none;
+    padding: 6px 12px 6px 12px;
+    vertical-align: middle;
+    width: 80%;
+}
+
+.search_box .text:focus {
+    outline: none;
+}
+
+.search_button {
+    margin: 30px 5px 10px 5px;
+    padding: 10px 20px 10px 20px;
+    border-radius: 5px;
+    color: darkslategray;
+    background-color: #f1f1f1;
+    border: none;
+}
+
+.body_no_margin {
+    margin: 0;
+}
+
+.advanced_header_1 {
+    height: 60px;
+    background-color: #f1f1f1;
+}
+
+.advanced_header_1 .logo {
+    float: left;
+    padding: 12px 10px 10px 10px;
+    width: 100px;
+}
+
+.advanced_header_1 .refs {
+    float: right;
+    padding: 13px 13px 13px 13px;
+    color: darkslategray;
+    font-family: Arial, sans-serif;
+    text-decoration: none;
+}
+
+.advanced_header_2 {
+    height: 75px;
+    color: #d93025;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.advanced_header_2 .text {
+    padding: 25px 45px 25px 45px;
+    font-family: arial, sans-serif;
+    font-size: 20px;
+}
+
+.advanced_search {
+    padding: 32px 45px 32px 45px;
+    width: 755px;
+}
+
+.advanced_search .text {
+    padding: 12px 0px 12px 0px;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    color: #333;
+}
+
+.advanced_search .search {
+    display: block;
+    clear: both;
+    float: left;
+    padding: 6px 0px 6px 0px;
+    width: 755px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #222;
+}
+
+.advanced_search .search .label {
+    display: flex;
+    float: left;
+    height: 30px;
+    align-items: center;
+}
+
+.advanced_search .search .box {
+    display: flex;
+    float: right;
+    width: 570px;
+    height: 24px;
+}
+
+.advanced_search .button {
+    margin: 8px 0px 8px 0px;
+    display: block;
+    clear: both;
+    float: right;
+    height: 30px;
+    width: 120px;
+    background-color: #4d90fe;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    border: 1px solid #3079ed;
+    border-radius: 2px;
+}
