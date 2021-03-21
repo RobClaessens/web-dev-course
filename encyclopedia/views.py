@@ -1,9 +1,15 @@
+from django import forms
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 import markdown2
 import random
 
 from . import util
+
+
+class NewPageForm(forms.Form):
+    title = forms.CharField(label='Title', widget=forms.TextInput(attrs={'style': "width:98%;"}))
+    content = forms.CharField(label='Content', widget=forms.Textarea(attrs={'style': "width:98%;"}))
 
 
 def query(func):
@@ -41,27 +47,56 @@ def index(request):
     })
 
 
+# @query
+# def new_page(request):
+#
+#     # If post, request to add entry to encyclopedia
+#     if request.method == "POST":
+#
+#         # Get post parameters
+#         title = request.POST.get('title')
+#         content = request.POST.get('content')
+#
+#         # If title already exists, give error
+#         if util.get_entry(title):
+#             return HttpResponse(f"<h1>Page '{title}' not added! It already exists in the encyclopedia.</h1>")
+#         # Else, save and entry and redirect
+#         else:
+#             util.save_entry(title, content)
+#             return redirect('show_page', title=title)
+#
+#     # Else, render basic page
+#     else:
+#         return render(request, "encyclopedia/new.html")
+
+
 @query
 def new_page(request):
 
     # If post, request to add entry to encyclopedia
     if request.method == "POST":
 
-        # Get post parameters
-        title = request.POST.get('title')
-        content = request.POST.get('content')
+        # Recreate form
+        form = NewPageForm(request.POST)
 
-        # If title already exists, give error
-        if util.get_entry(title):
-            return HttpResponse(f"<h1>Page '{title}' not added! It already exists in the encyclopedia.</h1>")
-        # Else, save and entry and redirect
-        else:
-            util.save_entry(title, content)
-            return redirect('show_page', title=title)
+        if form.is_valid():
 
-    # Else, render basic page
-    else:
-        return render(request, "encyclopedia/new.html")
+            # Get post parameters
+            title = form.cleaned_data['title']
+            content = form.cleaned_data['content']
+
+            # If title already exists, give error
+            if util.get_entry(title):
+                return HttpResponse(f"<h1>Page '{title}' not added! It already exists in the encyclopedia.</h1>")
+            # Else, save and entry and redirect
+            else:
+                util.save_entry(title, content)
+                return redirect('show_page', title=title)
+
+    # Render basic page
+    return render(request, "encyclopedia/new.html", {
+        "form": NewPageForm()
+    })
 
 
 @query

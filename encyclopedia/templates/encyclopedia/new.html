@@ -11,13 +11,15 @@
 
         {% csrf_token %}
 
-        <h3>Title:</h3>
-        <input name="title" type="text" value="title">
+<!--        <h3>Title:</h3>-->
+<!--        <input name="title" type="text" value="title">-->
 
-        <h3>Content:</h3>
-        <textarea name="content">content</textarea>
+<!--        <h3>Content:</h3>-->
+<!--        <textarea name="content">content</textarea>-->
 
-        <h3>Save page</h3>
+        {{ form }}
+
+<!--        <h3>Save page</h3>-->
         <input name="button" type="submit" value="Save page">
 
     </form>
