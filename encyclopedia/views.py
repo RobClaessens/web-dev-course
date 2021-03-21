@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponseNotFound
+from django.http import HttpResponse
 import markdown2
 import random
 
@@ -41,10 +41,27 @@ def index(request):
     })
 
 
+@query
 def new_page(request):
-    return render(request, "encyclopedia/new_page.html", {
-        "entries": util.list_entries()
-    })
+
+    # If post, request to add entry to encyclopedia
+    if request.method == "POST":
+
+        # Get post parameters
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+
+        # If title already exists, give error
+        if util.get_entry(title):
+            return HttpResponse(f"<h1>Page '{title}' not added! It already exists in the encyclopedia.</h1>")
+        # Else, save and entry and redirect
+        else:
+            util.save_entry(title, content)
+            return redirect('show_page', title=title)
+
+    # Else, render basic page
+    else:
+        return render(request, "encyclopedia/new.html")
 
 
 @query
@@ -61,4 +78,4 @@ def show_page(request, title):
             "content": markdown2.markdown(util.get_entry(title))
         })
     else:
-        return HttpResponseNotFound(f"<h1>Requested page '{title}' not found!</h1>")
+        return HttpResponse(f"<h1>Requested page '{title}' not found!</h1>")
