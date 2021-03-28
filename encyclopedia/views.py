@@ -12,6 +12,11 @@ class NewPageForm(forms.Form):
     content = forms.CharField(label='Content', widget=forms.Textarea(attrs={'style': "width:98%;"}))
 
 
+class EditPageForm(forms.Form):
+    title = forms.CharField(label='Title', widget=forms.TextInput(attrs={'style': "width:98%;"}))
+    content = forms.CharField(label='Content', widget=forms.Textarea(attrs={'style': "width:98%;"}))
+
+
 def query(func):
 
     def query_wrapper(request, *args, **kwargs):
@@ -47,6 +52,13 @@ def index(request):
     })
 
 
+@query
+def random_page(request):
+    title = random.choice(util.list_entries())
+    return redirect('show_page', title=title)
+
+
+# BASIC NEW PAGE IMPLEMENTATION #
 # @query
 # def new_page(request):
 #
@@ -70,6 +82,7 @@ def index(request):
 #         return render(request, "encyclopedia/new.html")
 
 
+# NEW PAGE IMPLEMENTATION WITH DJANGO FORMS #
 @query
 def new_page(request):
 
@@ -100,9 +113,34 @@ def new_page(request):
 
 
 @query
-def random_page(request):
-    title = random.choice(util.list_entries())
-    return redirect('show_page', title=title)
+def edit_page(request, title):
+
+    # If post, request to edit entry in encyclopedia
+    if request.method == "POST":
+
+        # Recreate form
+        form = EditPageForm(request.POST)
+
+        if form.is_valid():
+
+            # Get post parameters
+            title = form.cleaned_data['title']
+            content = form.cleaned_data['content'].replace('\r', '')    # Remove annoying added empty lines
+
+            # Save entry with changes and redirect
+            util.save_entry(title, content)
+            return redirect('show_page', title=title)
+
+    # Create empty form and set title and content
+    form = EditPageForm()
+    form.fields['title'].initial = title
+    form.fields['content'].initial = util.get_entry(title)
+
+    # Render basic page
+    return render(request, "encyclopedia/edit.html", {
+        "title": title,
+        "form": form
+    })
 
 
 @query

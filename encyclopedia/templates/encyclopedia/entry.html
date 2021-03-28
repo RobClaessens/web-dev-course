@@ -9,4 +9,6 @@
 
     {{ content | safe }}
 
+    <a href="{% url 'edit_page' title=title %}">Edit Page</a>
+
 {% endblock %}
