@@ -1,10 +1,11 @@
 from django.contrib.auth import authenticate, login, logout
-from django.db import IntegrityError
+from django.contrib.auth.decorators import login_required
+from django.db import Error, IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import *
 
 
 def index(request):
@@ -61,3 +62,42 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+@login_required
+def create_listing(request):
+    if request.method == "POST":
+
+        # Get required arguments
+        title = request.POST["title"]
+        description = request.POST["description"]
+        starting_bid = request.POST["starting_bid"]
+
+        # Get optional arguments
+        image = request.POST.get("image", '')
+        category = request.POST.get("category", '')
+
+        # Attempt to create new listing
+        try:
+            # Include optional arguments in dict
+            kwargs = dict()
+            if image:
+                kwargs['image'] = image
+            if category:
+                kwargs['category'] = Category.objects.get(name=category)
+
+            # Create listing and save
+            listing = Listing(title=title, description=description, starting_bid=starting_bid, **kwargs)
+            listing.save()
+
+        except Error as e:
+            return render(request, "auctions/register.html", {
+                "message": e.message
+            })
+
+        return HttpResponseRedirect(reverse("index"))
+
+    else:
+        return render(request, "auctions/create_listing.html", {
+            "categories": Category.objects.all()
+        })

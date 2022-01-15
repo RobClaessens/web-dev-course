@@ -12,21 +12,29 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = "Categories"
 
+    def __str__(self):
+        return self.name
+
 
 class Listing(models.Model):
     title = models.CharField(max_length=64)
     description = models.CharField(max_length=256)
-    starting_bid = models.IntegerField()
-    image = models.URLField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="listings")
+    starting_bid = models.DecimalField(default=0, max_digits=8, decimal_places=2)
+    image = models.URLField(default='', blank=True, null=True)
+    category = models.ForeignKey(Category, default='', blank=True, null=True, on_delete=models.SET_DEFAULT, related_name="listings")
+
+    def __str__(self):
+        return self.title
 
 
 class Bid(models.Model):
+    bid = models.DecimalField(default=0, max_digits=8, decimal_places=2)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bids')
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='bids')
 
 
 class Comment(models.Model):
+    comment = models.CharField(default='', max_length=256)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='comments')
 
