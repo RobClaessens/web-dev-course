@@ -1,3 +1,29 @@
 body {
     padding: 10px;
 }
+
+.active_listing {
+    display: flex;
+    width: 80%;
+    margin: 20px;
+    padding: 10px;
+    border: 2px solid black;
+}
+
+.active_listing .info {
+    width: 20%;
+    padding: 10px;
+    border: 1px solid gray;
+    margin-right: 10px;
+}
+
+.active_listing .info .property {
+    padding: 5px;
+    border-top: 1px solid lightgray;
+}
+
+.active_listing .image {
+    width: 80%;
+    padding: 10px;
+    border: 1px solid gray;
+}

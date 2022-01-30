@@ -23,6 +23,14 @@ class Listing(models.Model):
     image = models.URLField(default='', blank=True, null=True)
     category = models.ForeignKey(Category, default='', blank=True, null=True, on_delete=models.SET_DEFAULT, related_name="listings")
 
+    @property
+    def highest_bid(self):
+        return max([bid.bid for bid in self.bids.all()], default=self.starting_bid)
+
+    @property
+    def number_of_bids(self):
+        return len(self.bids.all())
+
     def __str__(self):
         return self.title
 
