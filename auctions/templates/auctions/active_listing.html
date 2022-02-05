@@ -1,0 +1,31 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <div class="active_listing">
+        <div class="info">
+            <h2> {{ listing.title }} </h2>
+            <div class="property">
+                <small> {{ listing.description }} </small>
+            </div>
+            <div class="property">
+                &euro; {{ listing.highest_bid }}
+                <br>
+                <small><i>
+                        {% if listing.number_of_bids == 1 %}
+                            1 bid so far
+                        {% else %}
+                            {{ listing.number_of_bids }} bids so far
+                        {% endif %}
+                </i></small>
+            </div>
+            {% if listing.category %}
+                <div class="property">
+                    {{ listing.category }}
+                </div>
+            {% endif %}
+        </div>
+        {% if listing.image %}
+            <img class="image" src="{{ listing.image|escape }}" alt="Image not found">
+        {% endif %}
+    </div>
+{% endblock %}

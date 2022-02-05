@@ -6,7 +6,9 @@
     {% for listing in listings %}
         <div class="active_listing">
             <div class="info">
-                <h2> {{ listing.title }} </h2>
+                <a href="{% url 'active_listing' listing.id %}">
+                    <h2> {{ listing.title }} </h2>
+                </a>
                 <div class="property">
                     <small> {{ listing.description }} </small>
                 </div>
@@ -28,7 +30,9 @@
                 {% endif %}
             </div>
             {% if listing.image %}
-                <img class="image" src="{{ listing.image|escape }}" alt="Image not found">
+                <a class="image" href="{% url 'active_listing' listing.id %}">
+                    <img width="100%" src="{{ listing.image|escape }}" alt="Image not found">
+                </a>
             {% endif %}
         </div>
     {% endfor %}

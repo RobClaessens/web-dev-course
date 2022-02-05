@@ -103,3 +103,11 @@ def create_listing(request):
         return render(request, "auctions/create_listing.html", {
             "categories": Category.objects.all()
         })
+
+
+@login_required
+def active_listing(request, listing_id):
+    listing = Listing.objects.get(id=listing_id)
+    return render(request, "auctions/active_listing.html", {
+        "listing": listing
+    })
