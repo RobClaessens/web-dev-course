@@ -3,7 +3,6 @@
 {% block body %}
 
     <h2>Create listing</h2>
-
     {% if message %}
         <div>{{ message }}</div>
     {% endif %}
@@ -32,7 +31,7 @@
                 </ul>
             </select>
         </div>
-        <input class="btn btn-primary" type="submit" value="Create">
+        <input class="btn btn-primary" type="submit" value="Create listing">
     </form>
 
     <a href="{% url 'index' %}">Cancel</a>

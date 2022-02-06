@@ -1,6 +1,13 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+
+    {% if message %}
+        <div class="message">
+            <div>{{ message }}</div>
+        </div>
+    {% endif %}
+
     <div class="active_listing">
         <div class="info">
             <h2> {{ listing.title }} </h2>
@@ -8,7 +15,7 @@
                 <small> {{ listing.description }} </small>
             </div>
             <div class="property">
-                &euro; {{ listing.highest_bid }}
+                &euro; {{ listing.highest_bid_value }}
                 <br>
                 <small><i>
                         {% if listing.number_of_bids == 1 %}
@@ -18,11 +25,36 @@
                         {% endif %}
                 </i></small>
             </div>
+            {% if listing.number_of_bids > 0 %}
+                <div class="property">
+                    <small><i>
+                        {% for bid in listing.sorted_bids %}
+                            <div>
+                                &euro; {{ bid.bid }} - {{ bid.user }}
+                            </div>
+                        {% endfor %}
+                    </i></small>
+                </div>
+            {% endif %}
+            <div class="property">
+                <small><i>
+                    &euro; {{ listing.starting_bid }} (Starting bid)
+                </i></small>
+            </div>
             {% if listing.category %}
                 <div class="property">
                     {{ listing.category }}
                 </div>
             {% endif %}
+            <div class="property">
+                <form action="{% url 'create_bid' listing.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input class="form-control" required type="number" name="bid" placeholder="0" min="0">
+                    </div>
+                    <input class="btn btn-primary" type="submit" value="Create bid">
+                </form>
+            </div>
         </div>
         {% if listing.image %}
             <img class="image" src="{{ listing.image|escape }}" alt="Image not found">

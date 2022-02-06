@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.validators import MinValueValidator
 
 
 class User(AbstractUser):
@@ -24,19 +25,31 @@ class Listing(models.Model):
     category = models.ForeignKey(Category, default='', blank=True, null=True, on_delete=models.SET_DEFAULT, related_name="listings")
 
     @property
-    def highest_bid(self):
-        return max([bid.bid for bid in self.bids.all()], default=self.starting_bid)
+    def highest_bid_object(self):
+
+        # Return highest bid object, returns None if no bids available yet
+        return max(self.bids.all(), key=lambda bid: bid.bid, default=None)
+
+    @property
+    def highest_bid_value(self):
+
+        # Return highest bid value, return starting bid if no bids available yet
+        return self.highest_bid_object.bid if self.highest_bid_object else self.starting_bid
 
     @property
     def number_of_bids(self):
         return len(self.bids.all())
+
+    @property
+    def sorted_bids(self):
+        return sorted(self.bids.all(), key=lambda bid: bid.bid, reverse=True)
 
     def __str__(self):
         return self.title
 
 
 class Bid(models.Model):
-    bid = models.DecimalField(default=0, max_digits=8, decimal_places=2)
+    bid = models.DecimalField(default=0, max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bids')
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='bids')
 

@@ -1,8 +1,6 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
-
     {% for listing in listings %}
         <div class="active_listing">
             <div class="info">
@@ -13,16 +11,27 @@
                     <small> {{ listing.description }} </small>
                 </div>
                 <div class="property">
-                    &euro; {{ listing.highest_bid }}
+                    &euro; {{ listing.highest_bid_value }}
                     <br>
                     <small><i>
-                            {% if listing.number_of_bids == 1 %}
-                                1 bid so far
-                            {% else %}
-                                {{ listing.number_of_bids }} bids so far
-                            {% endif %}
+                        {% if listing.number_of_bids == 1 %}
+                            1 bid so far
+                        {% else %}
+                            {{ listing.number_of_bids }} bids so far
+                        {% endif %}
                     </i></small>
                 </div>
+                {% if listing.number_of_bids > 0 %}
+                    <div class="fadeout_property">
+                        <small><i>
+                            {% for bid in listing.sorted_bids|slice:":3" %}
+                                <div>
+                                    &euro; {{ bid.bid }} - {{ bid.user }}
+                                </div>
+                            {% endfor %}
+                        </i></small>
+                    </div>
+                {% endif %}
                 {% if listing.category %}
                     <div class="property">
                         {{ listing.category }}

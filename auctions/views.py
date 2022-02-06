@@ -73,7 +73,7 @@ def create_listing(request):
         # Get required arguments
         title = request.POST["title"]
         description = request.POST["description"]
-        starting_bid = request.POST["starting_bid"]
+        starting_bid = float(request.POST["starting_bid"])
 
         # Get optional arguments
         image = request.POST.get("image", '')
@@ -93,7 +93,7 @@ def create_listing(request):
             listing.save()
 
         except Error as e:
-            return render(request, "auctions/register.html", {
+            return render(request, "auctions/create_listing.html", {
                 "message": e.message
             })
 
@@ -111,3 +111,40 @@ def active_listing(request, listing_id):
     return render(request, "auctions/active_listing.html", {
         "listing": listing
     })
+
+
+@login_required
+def create_bid(request, listing_id):
+    if request.method == 'POST':
+
+        # Get arguments
+        bid = float(request.POST["bid"])
+        listing = Listing.objects.get(id=listing_id)
+
+        # Check if bid is higher then previous bids or starting bids
+        if listing.highest_bid_value >= bid:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "message": f"Bid must exceed current highest bid (€{listing.highest_bid_value})!"
+            })
+
+        # Check if current highest bid is not of the same user
+        if listing.highest_bid_object and listing.highest_bid_object.user.pk is request.user.pk:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "message": f"You already have the current highest bid (€{listing.highest_bid_value})!"
+            })
+
+        # Attempt to create new bid
+        try:
+            # Create new bid and save
+            new_bid = Bid(bid=bid, user=request.user, listing=listing)
+            new_bid.save()
+
+        except Error as e:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "message": e.message
+            })
+
+        return HttpResponseRedirect(reverse("active_listing", args=(listing_id,)))
