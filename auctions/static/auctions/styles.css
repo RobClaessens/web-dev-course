@@ -19,7 +19,6 @@ body {
     width: 20%;
     padding: 10px;
     border: 1px solid gray;
-    margin-right: 10px;
 }
 
 .active_listing .info .property {
@@ -33,8 +32,17 @@ body {
     mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
 }
 
-.active_listing .image {
+.active_listing .index_image {
     width: 80%;
-    padding: 10px;
+    margin-left: 10px;
     border: 1px solid gray;
+    padding: 10px;
+}
+
+.active_listing .listing_image {
+    width: 60%;
+    margin-left: 10px;
+    margin-right: 10px;
+    border: 1px solid gray;
+    padding: 10px;
 }

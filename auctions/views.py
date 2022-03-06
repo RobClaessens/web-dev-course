@@ -125,21 +125,46 @@ def create_bid(request, listing_id):
         if listing.highest_bid_value >= bid:
             return render(request, "auctions/active_listing.html", {
                 "listing": listing,
-                "message": f"Bid must exceed current highest bid (€{listing.highest_bid_value})!"
+                "message": f"Bid must exceed current highest bid: €{listing.highest_bid_value}!"
             })
 
         # Check if current highest bid is not of the same user
         if listing.highest_bid_object and listing.highest_bid_object.user.pk is request.user.pk:
             return render(request, "auctions/active_listing.html", {
                 "listing": listing,
-                "message": f"You already have the current highest bid (€{listing.highest_bid_value})!"
+                "message": f"You already have the current highest bid: €{listing.highest_bid_value}!"
             })
+
+        # TODO: Check if bid is not of user that created listings!
 
         # Attempt to create new bid
         try:
             # Create new bid and save
             new_bid = Bid(bid=bid, user=request.user, listing=listing)
             new_bid.save()
+
+        except Error as e:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "message": e.message
+            })
+
+        return HttpResponseRedirect(reverse("active_listing", args=(listing_id,)))
+
+
+@login_required
+def create_comment(request, listing_id):
+    if request.method == 'POST':
+
+        # Get arguments
+        comment = request.POST["comment"]
+        listing = Listing.objects.get(id=listing_id)
+
+        # Attempt to create new comment
+        try:
+            # Create new comment and save
+            new_comment = Comment(comment=comment, user=request.user, listing=listing)
+            new_comment.save()
 
         except Error as e:
             return render(request, "auctions/active_listing.html", {

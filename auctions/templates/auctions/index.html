@@ -4,9 +4,15 @@
     {% for listing in listings %}
         <div class="active_listing">
             <div class="info">
-                <a href="{% url 'active_listing' listing.id %}">
-                    <h2> {{ listing.title }} </h2>
-                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'active_listing' listing.id %}">
+                        <h2> {{ listing.title }} </h2>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}">
+                        <h2> {{ listing.title }} </h2>
+                    </a>
+                {% endif %}
                 <div class="property">
                     <small> {{ listing.description }} </small>
                 </div>
@@ -39,9 +45,17 @@
                 {% endif %}
             </div>
             {% if listing.image %}
-                <a class="image" href="{% url 'active_listing' listing.id %}">
-                    <img width="100%" src="{{ listing.image|escape }}" alt="Image not found">
-                </a>
+                <div class="index_image">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'active_listing' listing.id %}">
+                            <img width="100%" src="{{ listing.image|escape }}" alt="Image not found">
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}">
+                            <img width="100%" src="{{ listing.image|escape }}" alt="Image not found">
+                        </a>
+                    {% endif %}
+                </div>
             {% endif %}
         </div>
     {% endfor %}
