@@ -6,6 +6,10 @@ from django.core.validators import MinValueValidator
 class User(AbstractUser):
     pass
 
+    @property
+    def watchlist_listings(self):
+        return [watching.listing for watching in self.watchlist.all()]
+
 
 class Category(models.Model):
     name = models.CharField(max_length=32)

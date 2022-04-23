@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Category, Listing, Bid, Comment
+from .models import User, Category, Listing, Bid, Comment, Watching
 
 
 # Register your models here.
@@ -16,5 +16,4 @@ admin.site.register(Category)
 admin.site.register(Listing)
 admin.site.register(Bid)
 admin.site.register(Comment)
-# admin.site.register(Flight, FlightAdmin)
-# admin.site.register(Passenger, PassengerAdmin)
+admin.site.register(Watching)

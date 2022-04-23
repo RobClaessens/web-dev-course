@@ -16,36 +16,31 @@
             </div>
             <div class="property">
                 &euro; {{ listing.highest_bid_value }}
-                <br>
-                <small><i>
-                        {% if listing.number_of_bids == 1 %}
-                            1 bid so far
-                        {% else %}
-                            {{ listing.number_of_bids }} bids so far
-                        {% endif %}
-                </i></small>
             </div>
-            {% if listing.number_of_bids > 0 %}
-                <div class="property">
-                    <small><i>
-                        {% for bid in listing.sorted_bids %}
-                            <div>
-                                &euro; {{ bid.bid }} - {{ bid.user }}
-                            </div>
-                        {% endfor %}
-                    </i></small>
-                </div>
-            {% endif %}
             <div class="property">
                 <small><i>
-                    &euro; {{ listing.starting_bid }} (Starting bid)
+                    <u>
+                        {% if listing.number_of_bids == 1 %}
+                            1 bid
+                        {% elif listing.number_of_bids > 1 %}
+                            {{ listing.number_of_bids }} bids
+                        {% endif %}
+                    </u>
+                    {% for bid in listing.sorted_bids %}
+                        <div>
+                            &euro; {{ bid.bid }} - {{ bid.user }}
+                        </div>
+                    {% endfor %}
+                    <div>
+                        <u>
+                            Starting bid
+                        </u>
+                        <div>
+                            &euro; {{ listing.starting_bid }}
+                        </div>
+                    </div>
                 </i></small>
             </div>
-            {% if listing.category %}
-                <div class="property">
-                    {{ listing.category }}
-                </div>
-            {% endif %}
             <div class="property">
                 <form action="{% url 'create_bid' listing.id %}" method="post">
                     {% csrf_token %}
@@ -55,6 +50,13 @@
                     <input class="btn btn-primary" type="submit" value="Create bid">
                 </form>
             </div>
+            {% if listing.category %}
+                <div class="property">
+                    <form action="{% url 'category' listing.category.id %}">
+                        <input class="btn btn-primary" type="submit" value="{{ listing.category.name }}">
+                    </form>
+                </div>
+            {% endif %}
         </div>
         <div class="listing_image">
             {% if listing.image %}
@@ -64,24 +66,20 @@
         <div class="info">
             <div class="property">
                 <small><i>
-                    {% if listing.number_of_comments == 1 %}
-                        1 comment
-                    {% else %}
-                        {{ listing.number_of_comments }} comments
-                    {% endif %}
+                    <u>
+                        {% if listing.number_of_comments == 1 %}
+                            1 comment
+                        {% else %}
+                            {{ listing.number_of_comments }} comments
+                        {% endif %}
+                    </u>
+                    {% for comment in listing.sorted_comments %}
+                        <div>
+                            {{ comment.comment }} - {{ comment.user }}
+                        </div>
+                    {% endfor %}
                 </i></small>
             </div>
-            {% if listing.number_of_comments > 0 %}
-                <div class="property">
-                    <small><i>
-                        {% for comment in listing.sorted_comments %}
-                            <div>
-                                {{ comment.comment }} - {{ comment.user }}
-                            </div>
-                        {% endfor %}
-                    </i></small>
-                </div>
-            {% endif %}
             <div class="property">
                 <form action="{% url 'create_comment' listing.id %}" method="post">
                     {% csrf_token %}
@@ -91,6 +89,21 @@
                     <input class="btn btn-primary" type="submit" value="Create comment">
                 </form>
             </div>
+            {% if listing in user.watchlist_listings %}
+                <div class="property">
+                    <form action="{% url 'remove_watching' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <input class="btn btn-primary" type="submit" value="Remove from watchlist">
+                    </form>
+                </div>
+            {% else %}
+                <div class="property">
+                    <form action="{% url 'create_watching' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <input class="btn btn-primary" type="submit" value="Add to watchlist">
+                    </form>
+                </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

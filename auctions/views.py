@@ -11,6 +11,7 @@ from .models import *
 def index(request):
     return render(request, "auctions/index.html", {
             "listings": Listing.objects.all(),
+            "categories": Category.objects.all()
         })
 
 
@@ -94,7 +95,8 @@ def create_listing(request):
 
         except Error as e:
             return render(request, "auctions/create_listing.html", {
-                "message": e.message
+                "message": e.message,
+                "categories": Category.objects.all(),
             })
 
         return HttpResponseRedirect(reverse("index"))
@@ -109,7 +111,8 @@ def create_listing(request):
 def active_listing(request, listing_id):
     listing = Listing.objects.get(id=listing_id)
     return render(request, "auctions/active_listing.html", {
-        "listing": listing
+        "listing": listing,
+        "categories": Category.objects.all(),
     })
 
 
@@ -121,10 +124,19 @@ def create_bid(request, listing_id):
         bid = float(request.POST["bid"])
         listing = Listing.objects.get(id=listing_id)
 
+        # Check if bid and listing are not of same user
+        if listing.user.pk is request.user.pk:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "categories": Category.objects.all(),
+                "message": f"You cannot bid on your own listing!"
+            })
+
         # Check if bid is higher then previous bids or starting bids
         if listing.highest_bid_value >= bid:
             return render(request, "auctions/active_listing.html", {
                 "listing": listing,
+                "categories": Category.objects.all(),
                 "message": f"Bid must exceed current highest bid: €{listing.highest_bid_value}!"
             })
 
@@ -132,10 +144,9 @@ def create_bid(request, listing_id):
         if listing.highest_bid_object and listing.highest_bid_object.user.pk is request.user.pk:
             return render(request, "auctions/active_listing.html", {
                 "listing": listing,
+                "categories": Category.objects.all(),
                 "message": f"You already have the current highest bid: €{listing.highest_bid_value}!"
             })
-
-        # TODO: Check if bid is not of user that created listings!
 
         # Attempt to create new bid
         try:
@@ -146,6 +157,7 @@ def create_bid(request, listing_id):
         except Error as e:
             return render(request, "auctions/active_listing.html", {
                 "listing": listing,
+                "categories": Category.objects.all(),
                 "message": e.message
             })
 
@@ -169,7 +181,63 @@ def create_comment(request, listing_id):
         except Error as e:
             return render(request, "auctions/active_listing.html", {
                 "listing": listing,
+                "categories": Category.objects.all(),
                 "message": e.message
             })
 
         return HttpResponseRedirect(reverse("active_listing", args=(listing_id,)))
+
+
+@login_required
+def create_watching(request, listing_id):
+    if request.method == 'POST':
+
+        # Get arguments
+        listing = Listing.objects.get(id=listing_id)
+
+        # Attempt to create new watching
+        try:
+            # Create new watching and save
+            new_watching = Watching(user=request.user, listing=listing)
+            new_watching.save()
+
+        except Error as e:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "categories": Category.objects.all(),
+                "message": e.message
+            })
+
+        return HttpResponseRedirect(reverse("active_listing", args=(listing_id,)))
+
+
+@login_required
+def remove_watching(request, listing_id):
+    if request.method == 'POST':
+
+        # Get listing
+        listing = Listing.objects.get(id=listing_id)
+
+        # Get existing watching
+        watching = Watching.objects.get(listing=listing, user=request.user)
+
+        # Attempt to remove watching
+        try:
+            # Remove watching
+            watching.delete()
+
+        except Error as e:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "categories": Category.objects.all(),
+                "message": e.message
+            })
+
+        return HttpResponseRedirect(reverse("active_listing", args=(listing_id,)))
+
+
+def category(request, category_id):
+    return render(request, "auctions/index.html", {
+            "listings": Category.objects.get(id=category_id).listings.all(),
+            "categories": Category.objects.all()
+    })

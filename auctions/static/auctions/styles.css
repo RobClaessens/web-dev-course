@@ -46,3 +46,14 @@ body {
     border: 1px solid gray;
     padding: 10px;
 }
+
+.form-group {
+    margin-bottom: 5px;
+}
+
+.nav {
+    width: 80%;
+    margin: 20px;
+    border-top: 2px solid lightgray;
+    border-bottom: 2px solid lightgray;
+}
