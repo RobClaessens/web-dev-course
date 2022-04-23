@@ -90,7 +90,7 @@ def create_listing(request):
                 kwargs['category'] = Category.objects.get(name=category)
 
             # Create listing and save
-            listing = Listing(title=title, description=description, starting_bid=starting_bid, **kwargs)
+            listing = Listing(title=title, description=description, starting_bid=starting_bid, user=request.user, **kwargs)
             listing.save()
 
         except Error as e:
@@ -239,5 +239,12 @@ def remove_watching(request, listing_id):
 def category(request, category_id):
     return render(request, "auctions/index.html", {
             "listings": Category.objects.get(id=category_id).listings.all(),
+            "categories": Category.objects.all()
+    })
+
+
+def watchlist(request):
+    return render(request, "auctions/index.html", {
+            "listings": request.user.watchlist_listings,
             "categories": Category.objects.all()
     })
