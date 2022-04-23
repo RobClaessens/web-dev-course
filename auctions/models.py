@@ -29,6 +29,7 @@ class Listing(models.Model):
     category = models.ForeignKey(Category, default='', blank=True, null=True, on_delete=models.SET_DEFAULT, related_name="listings")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listings')
     created_at = models.DateTimeField(auto_now_add=True)
+    closed = models.BooleanField(default=False)
 
     @property
     def highest_bid_object(self):

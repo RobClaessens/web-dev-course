@@ -108,6 +108,29 @@ def create_listing(request):
 
 
 @login_required
+def close_listing(request, listing_id):
+    if request.method == 'POST':
+
+        # Get listing
+        listing = Listing.objects.get(id=listing_id)
+
+        # Attempt to close listing
+        try:
+            # Close listing
+            listing.closed = True
+            listing.save()
+
+        except Error as e:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "categories": Category.objects.all(),
+                "message": e.message
+            })
+
+        return HttpResponseRedirect(reverse("active_listing", args=(listing_id,)))
+
+
+@login_required
 def active_listing(request, listing_id):
     listing = Listing.objects.get(id=listing_id)
     return render(request, "auctions/active_listing.html", {

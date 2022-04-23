@@ -104,6 +104,27 @@
                     </form>
                 </div>
             {% endif %}
+            {% if listing.closed %}
+                {% if user.id is listing.highest_bid_object.user.id %}
+                    <div class="property">
+                        Auction closed,<br> you won the auction!
+                    </div>
+                {% else %}
+                    <div class="property">
+                        Auction closed
+                    </div>
+                {% endif %}
+            {% else %}
+                {% if user.id is listing.user.id %}
+                    <div class="property">
+                        <form action="{% url 'close_listing' listing.id %}" method="post">
+                            {% csrf_token %}
+                            <input class="btn btn-primary" type="submit" value="Close listing"
+                                   onclick="return confirm('Are you sure you want to close the auction?')">
+                        </form>
+                    </div>
+                {% endif %}
+            {% endif %}
         </div>
     </div>
 {% endblock %}
