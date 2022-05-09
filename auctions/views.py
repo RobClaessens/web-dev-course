@@ -155,12 +155,20 @@ def create_bid(request, listing_id):
                 "message": f"You cannot bid on your own listing!"
             })
 
-        # Check if bid is higher then previous bids or starting bids
+        # Check if bid is higher than previous bid
         if listing.highest_bid_value >= bid:
             return render(request, "auctions/active_listing.html", {
                 "listing": listing,
                 "categories": Category.objects.all(),
-                "message": f"Bid must exceed current highest bid: €{listing.highest_bid_value}!"
+                "message": f"Bid must exceed current highest bid: €{listing.current_price}!"
+            })
+
+        # Check if bid is at least equal to starting bid
+        if listing.starting_bid > bid:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "categories": Category.objects.all(),
+                "message": f"Bid must at least be equal to starting bid: €{listing.starting_bid}!"
             })
 
         # Check if current highest bid is not of the same user
@@ -168,7 +176,7 @@ def create_bid(request, listing_id):
             return render(request, "auctions/active_listing.html", {
                 "listing": listing,
                 "categories": Category.objects.all(),
-                "message": f"You already have the current highest bid: €{listing.highest_bid_value}!"
+                "message": f"You already have the current highest bid: €{listing.current_price}!"
             })
 
         # Attempt to create new bid

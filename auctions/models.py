@@ -40,8 +40,14 @@ class Listing(models.Model):
     @property
     def highest_bid_value(self):
 
-        # Return highest bid value, return starting bid if no bids available yet
-        return self.highest_bid_object.bid if self.highest_bid_object else self.starting_bid
+        # Return highest bid value, return -1 if no bids available yet
+        return self.highest_bid_object.bid if self.highest_bid_object else -1
+
+    @property
+    def current_price(self):
+
+        # Return highest bid value or starting bid
+        return max(self.highest_bid_value, self.starting_bid)
 
     @property
     def number_of_bids(self):
