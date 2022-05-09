@@ -11,7 +11,8 @@ from .models import *
 def index(request):
     return render(request, "auctions/index.html", {
             "listings": Listing.objects.all(),
-            "categories": Category.objects.all()
+            "categories": Category.objects.all(),
+            "only_active": True
         })
 
 
@@ -155,6 +156,14 @@ def create_bid(request, listing_id):
                 "message": f"You cannot bid on your own listing!"
             })
 
+        # Check if auction is still open
+        if listing.closed:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "categories": Category.objects.all(),
+                "message": f"You cannot bid anymore, auction closed!"
+            })
+
         # Check if bid is higher than previous bid
         if listing.highest_bid_value >= bid:
             return render(request, "auctions/active_listing.html", {
@@ -202,6 +211,14 @@ def create_comment(request, listing_id):
         # Get arguments
         comment = request.POST["comment"]
         listing = Listing.objects.get(id=listing_id)
+
+        # Check if auction is still open
+        if listing.closed:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "categories": Category.objects.all(),
+                "message": f"You cannot comment anymore, auction closed!"
+            })
 
         # Attempt to create new comment
         try:
@@ -270,12 +287,14 @@ def remove_watching(request, listing_id):
 def category(request, category_id):
     return render(request, "auctions/index.html", {
             "listings": Category.objects.get(id=category_id).listings.all(),
-            "categories": Category.objects.all()
+            "categories": Category.objects.all(),
+            "only_active": False
     })
 
 
 def watchlist(request):
     return render(request, "auctions/index.html", {
             "listings": request.user.watchlist_listings,
-            "categories": Category.objects.all()
+            "categories": Category.objects.all(),
+            "only_active": False
     })

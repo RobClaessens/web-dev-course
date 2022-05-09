@@ -10,7 +10,11 @@
 
     <div class="active_listing">
         <div class="info">
-            <h2> {{ listing.title }} </h2>
+            {% if listing.closed %}
+                <h2> {{ listing.title }} <br> [CLOSED] </h2>
+            {% else %}
+                <h2> {{ listing.title }} </h2>
+            {% endif %}
             <div class="property">
                 <small> {{ listing.description }} </small>
             </div>
@@ -52,9 +56,9 @@
             </div>
             {% if listing.category %}
                 <div class="property">
-                    <form action="{% url 'category' listing.category.id %}">
-                        <input class="btn btn-primary" type="submit" value="{{ listing.category.name }}">
-                    </form>
+                    <a href="{% url 'category' listing.category.id %}">
+                        {{ listing.category }}
+                    </a>
                 </div>
             {% endif %}
         </div>
