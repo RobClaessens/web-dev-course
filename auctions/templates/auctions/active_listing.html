@@ -57,7 +57,7 @@
             {% if listing.category %}
                 <div class="property">
                     <a href="{% url 'category' listing.category.id %}">
-                        {{ listing.category }}
+                        {{ listing.category.name }}
                     </a>
                 </div>
             {% endif %}

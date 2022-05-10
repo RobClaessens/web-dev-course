@@ -18,7 +18,7 @@ class Category(models.Model):
         verbose_name_plural = "Categories"
 
     def __str__(self):
-        return self.name
+        return f"Category '{self.name}'"
 
 
 class Listing(models.Model):
@@ -70,7 +70,7 @@ class Listing(models.Model):
         return len(self.watchings.all())
 
     def __str__(self):
-        return self.title
+        return f"Listing '{self.title}' from '{self.user}'"
 
 
 class Bid(models.Model):
@@ -97,3 +97,6 @@ class Watching(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlist')
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='watchings')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Watching on '{self.listing.title}' from '{self.user}'"

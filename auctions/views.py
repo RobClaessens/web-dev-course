@@ -94,6 +94,10 @@ def create_listing(request):
             listing = Listing(title=title, description=description, starting_bid=starting_bid, user=request.user, **kwargs)
             listing.save()
 
+            # Add listing to watchlist
+            new_watching = Watching(user=request.user, listing=listing)
+            new_watching.save()
+
         except Error as e:
             return render(request, "auctions/create_listing.html", {
                 "message": e.message,
@@ -148,6 +152,14 @@ def create_bid(request, listing_id):
         bid = float(request.POST["bid"])
         listing = Listing.objects.get(id=listing_id)
 
+        # Check if auction is still open
+        if listing.closed:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "categories": Category.objects.all(),
+                "message": f"You cannot bid anymore, auction closed!"
+            })
+
         # Check if bid and listing are not of same user
         if listing.user.pk is request.user.pk:
             return render(request, "auctions/active_listing.html", {
@@ -156,12 +168,12 @@ def create_bid(request, listing_id):
                 "message": f"You cannot bid on your own listing!"
             })
 
-        # Check if auction is still open
-        if listing.closed:
+        # Check if current highest bid is not of the same user
+        if listing.highest_bid_object and listing.highest_bid_object.user.pk is request.user.pk:
             return render(request, "auctions/active_listing.html", {
                 "listing": listing,
                 "categories": Category.objects.all(),
-                "message": f"You cannot bid anymore, auction closed!"
+                "message": f"You already have the current highest bid: €{listing.current_price}!"
             })
 
         # Check if bid is higher than previous bid
@@ -180,19 +192,16 @@ def create_bid(request, listing_id):
                 "message": f"Bid must at least be equal to starting bid: €{listing.starting_bid}!"
             })
 
-        # Check if current highest bid is not of the same user
-        if listing.highest_bid_object and listing.highest_bid_object.user.pk is request.user.pk:
-            return render(request, "auctions/active_listing.html", {
-                "listing": listing,
-                "categories": Category.objects.all(),
-                "message": f"You already have the current highest bid: €{listing.current_price}!"
-            })
-
         # Attempt to create new bid
         try:
             # Create new bid and save
             new_bid = Bid(bid=bid, user=request.user, listing=listing)
             new_bid.save()
+
+            # Add listing to watchlist if not yet on it
+            if listing not in request.user.watchlist_listings:
+                new_watching = Watching(user=request.user, listing=listing)
+                new_watching.save()
 
         except Error as e:
             return render(request, "auctions/active_listing.html", {
@@ -225,6 +234,11 @@ def create_comment(request, listing_id):
             # Create new comment and save
             new_comment = Comment(comment=comment, user=request.user, listing=listing)
             new_comment.save()
+
+            # Add listing to watchlist if not yet on it
+            if listing not in request.user.watchlist_listings:
+                new_watching = Watching(user=request.user, listing=listing)
+                new_watching.save()
 
         except Error as e:
             return render(request, "auctions/active_listing.html", {
