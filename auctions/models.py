@@ -70,7 +70,10 @@ class Listing(models.Model):
         return len(self.watchings.all())
 
     def __str__(self):
-        return f"Listing '{self.title}' from '{self.user}'"
+        if self.closed:
+            return f"Listing '{self.title}' from '{self.user}' [CLOSED]"
+        else:
+            return f"Listing '{self.title}' from '{self.user}'"
 
 
 class Bid(models.Model):
