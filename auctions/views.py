@@ -192,6 +192,14 @@ def create_bid(request, listing_id):
                 "message": f"Bid must at least be equal to starting bid: €{listing.starting_bid}!"
             })
 
+        # Check if bid is not 1e6 or higher
+        if 1e6 <= bid:
+            return render(request, "auctions/active_listing.html", {
+                "listing": listing,
+                "categories": Category.objects.all(),
+                "message": f"Bids of €{1e6:.2f} or higher are not allowed!"
+            })
+
         # Attempt to create new bid
         try:
             # Create new bid and save
