@@ -1,3 +1,16 @@
 textarea {
     min-height: 400px;
 }
+
+.read_email_div {
+    background-color: lightgray;
+    border: 1px solid gray;
+    margin: 10px 0px 10px 0px;
+    padding: 3px;
+}
+
+.unread_email_div {
+    border: 1px solid gray;
+    margin: 10px 0px 10px 0px;
+    padding: 3px;
+}
