@@ -17,6 +17,7 @@ function compose_email() {
 
     // Show compose view and hide other views
     document.querySelector('#emails-view').style.display = 'none';
+    document.querySelector('#email-view').style.display = 'none';
     document.querySelector('#compose-view').style.display = 'block';
 
     // Clear out composition fields
@@ -29,6 +30,7 @@ function load_mailbox(mailbox) {
   
     // Show the mailbox and hide other views
     document.querySelector('#emails-view').style.display = 'block';
+    document.querySelector('#email-view').style.display = 'none';
     document.querySelector('#compose-view').style.display = 'none';
 
     // Show the mailbox name
@@ -46,7 +48,7 @@ function load_mailbox(mailbox) {
             const email_div = document.createElement('div');
 
             // Create text and assign CSS class based on status
-            email_div.innerHTML = `*${email.subject}* from *${email.sender}* at ${email.timestamp}`;
+            email_div.innerHTML = `${email.subject} from ${email.sender} at ${email.timestamp}`;
             if (email.read) {
                 email_div.classList.add('read_email_div');
             } else {
@@ -54,9 +56,7 @@ function load_mailbox(mailbox) {
             }
 
             // Add event listener to open email on click
-            email_div.addEventListener('click', function() {
-                console.log('This email_div has been clicked!')
-            });
+            email_div.addEventListener('click', () => load_email(email.id));
 
             // Append div to container div
             document.querySelector('#emails-view').append(email_div);
@@ -64,6 +64,49 @@ function load_mailbox(mailbox) {
         });
     });
 }
+
+function load_email(email_id) {
+
+    // Show the mail and hide other views
+    document.querySelector('#emails-view').style.display = 'none';
+    document.querySelector('#email-view').style.display = 'block';
+    document.querySelector('#compose-view').style.display = 'none';
+
+    // Show header name
+    document.querySelector('#email-view').innerHTML = '<h3>Mail</h3>';
+
+    // Get mail and show in view
+    fetch(`/emails/${email_id}`)
+    .then(response => response.json())
+    .then(email => {
+
+        // Set array with email attributes, and iterate over them
+        const email_attrs = ['sender', 'recipients', 'subject', 'timestamp', 'body']
+        for (email_attr of email_attrs) {
+
+            // Create new div
+            const email_attr_div = document.createElement('div');
+
+            // Create text and assign CSS class
+            if (email_attr === 'body' ||  email_attr === 'timestamp') {
+                email_attr_div.innerHTML = email[email_attr];
+                email_attr_div.classList.add(`email_${email_attr}`);
+            } else {
+                email_attr_div.innerHTML = `${email_attr.toUpperCase()}: ${email[email_attr]}`;
+                email_attr_div.classList.add(`email_${email_attr}`);
+            }
+
+            // Append div to container div
+            document.querySelector('#email-view').append(email_attr_div);
+
+        }
+    })
+    // Catch possible errors
+    .catch(error => {
+        console.log('Error: ', error);
+    });
+}
+
 
 function send_email(event) {
 
@@ -89,8 +132,8 @@ function send_email(event) {
         } else {
             console.log(result.error);
         }
-    // Catch possible errors
     }))
+    // Catch possible errors
     .catch(error => {
         console.log('Error: ', error);
     });

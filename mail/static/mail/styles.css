@@ -14,3 +14,21 @@ textarea {
     margin: 10px 0px 10px 0px;
     padding: 3px;
 }
+
+.email_sender, .email_recipients, .email_subject, .email_timestamp, .email_body {
+    border: 1px solid gray;
+    margin: 5px 0px 5px 0px;
+    padding: 3px;
+}
+
+.email_sender, .email_recipients, .email_subject {
+    font-weight: bold;
+}
+
+.email_timestamp {
+    font-style: italic;
+}
+
+.email_body {
+    min-height: 400px;
+}
