@@ -73,12 +73,28 @@ function load_email(email_id) {
     document.querySelector('#compose-view').style.display = 'none';
 
     // Show header name
-    document.querySelector('#email-view').innerHTML = '<h3>Mail</h3>';
+    document.querySelector('#email-view').innerHTML = '<h3>Email</h3>';
 
     // Get mail and show in view
     fetch(`/emails/${email_id}`)
     .then(response => response.json())
     .then(email => {
+
+        // Create button
+        const archive_button = document.createElement('button');
+        archive_button.className = 'btn btn-sm btn-outline-primary';
+
+        // Set content and event based on archived status
+        if (email.archived === true) {
+            archive_button.innerHTML = 'Unarchive';
+            archive_button.addEventListener('click', () => archive_email(email_id, false));
+        } else {
+            archive_button.innerHTML = 'Archive';
+            archive_button.addEventListener('click', () => archive_email(email_id, true));
+        }
+
+        // Append button
+        document.querySelector('#email-view').append(archive_button);
 
         // Set array with email attributes, and iterate over them
         const email_attrs = ['sender', 'recipients', 'subject', 'timestamp', 'body']
@@ -149,4 +165,28 @@ function send_email(event) {
     .catch(error => {
         console.log('Error: ', error);
     });
+}
+
+function archive_email(email_id, archived_bool) {
+
+    // PUT request to set the email to read status
+    fetch(`/emails/${email_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          archived: archived_bool
+        })
+    })
+    // Listen for result
+    .then(result => {
+
+        // Handle result
+        if (result.status == 204) {
+            load_mailbox('inbox');
+        }
+    })
+    // Catch possible errors
+    .catch(error => {
+        console.log('Error: ', error);
+    });
+
 }
