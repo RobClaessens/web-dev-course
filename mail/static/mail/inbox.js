@@ -105,6 +105,18 @@ function load_email(email_id) {
     .catch(error => {
         console.log('Error: ', error);
     });
+
+    // PUT request to set the email to read status
+    fetch(`/emails/${email_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          read: true
+        })
+    })
+    // Catch possible errors
+    .catch(error => {
+        console.log('Error: ', error);
+    });
 }
 
 
