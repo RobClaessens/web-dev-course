@@ -73,16 +73,26 @@ function load_email(email_id) {
     document.querySelector('#compose-view').style.display = 'none';
 
     // Show header name
-    document.querySelector('#email-view').innerHTML = '<h3>Email</h3>';
+    document.querySelector('#email-view').innerHTML = '';
 
     // Get mail and show in view
     fetch(`/emails/${email_id}`)
     .then(response => response.json())
     .then(email => {
 
-        // Create button
+        // Create reply button
+        const reply_button = document.createElement('button');
+        reply_button.className = 'btn btn-sm btn-outline-primary';
+        reply_button.style.marginRight = '5px';
+
+        // Set content
+        reply_button.innerHTML = 'Reply';
+        reply_button.addEventListener('click', () => reply_email(email_id));
+
+        // Create archive button
         const archive_button = document.createElement('button');
         archive_button.className = 'btn btn-sm btn-outline-primary';
+        archive_button.style.marginRight = '5px';
 
         // Set content and event based on archived status
         if (email.archived === true) {
@@ -93,8 +103,13 @@ function load_email(email_id) {
             archive_button.addEventListener('click', () => archive_email(email_id, true));
         }
 
-        // Append button
+        // Append buttons
+        document.querySelector('#email-view').append(reply_button);
         document.querySelector('#email-view').append(archive_button);
+
+        // Add horizontal ruler
+        const hr = document.createElement('hr');
+        document.querySelector('#email-view').append(hr);
 
         // Set array with email attributes, and iterate over them
         const email_attrs = ['sender', 'recipients', 'subject', 'timestamp', 'body']
@@ -188,5 +203,30 @@ function archive_email(email_id, archived_bool) {
     .catch(error => {
         console.log('Error: ', error);
     });
+}
 
+function reply_email(email_id) {
+
+    // First call email composition
+    compose_email()
+
+    // Fetch mail
+    fetch(`/emails/${email_id}`)
+    .then(response => response.json())
+    .then(email => {
+
+        // Now prefill composition fields
+        document.querySelector('#compose-recipients').value = email.sender;
+        if (email.subject.startsWith('RE:')) {
+            document.querySelector('#compose-subject').value = email.subject;
+        } else {
+            document.querySelector('#compose-subject').value = `RE: ${email.subject}`;
+        }
+        document.querySelector('#compose-body').value = `On ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
+
+    })
+    // Catch possible errors
+    .catch(error => {
+        console.log('Error: ', error);
+    });
 }
