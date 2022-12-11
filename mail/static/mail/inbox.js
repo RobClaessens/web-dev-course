@@ -56,7 +56,7 @@ function load_mailbox(mailbox) {
             }
 
             // Add event listener to open email on click
-            email_div.addEventListener('click', () => load_email(email.id));
+            email_div.addEventListener('click', () => load_email(email.id, mailbox));
 
             // Append div to container div
             document.querySelector('#emails-view').append(email_div);
@@ -65,7 +65,7 @@ function load_mailbox(mailbox) {
     });
 }
 
-function load_email(email_id) {
+function load_email(email_id, mailbox) {
 
     // Show the mail and hide other views
     document.querySelector('#emails-view').style.display = 'none';
@@ -89,23 +89,29 @@ function load_email(email_id) {
         reply_button.innerHTML = 'Reply';
         reply_button.addEventListener('click', () => reply_email(email_id));
 
-        // Create archive button
-        const archive_button = document.createElement('button');
-        archive_button.className = 'btn btn-sm btn-outline-primary';
-        archive_button.style.marginRight = '5px';
-
-        // Set content and event based on archived status
-        if (email.archived === true) {
-            archive_button.innerHTML = 'Unarchive';
-            archive_button.addEventListener('click', () => archive_email(email_id, false));
-        } else {
-            archive_button.innerHTML = 'Archive';
-            archive_button.addEventListener('click', () => archive_email(email_id, true));
-        }
-
-        // Append buttons
+        // Append reply button
         document.querySelector('#email-view').append(reply_button);
-        document.querySelector('#email-view').append(archive_button);
+
+        // Do not add archive button for 'sent' mailbox
+        if (mailbox !== 'sent') {
+
+            // Create archive button
+            const archive_button = document.createElement('button');
+            archive_button.className = 'btn btn-sm btn-outline-primary';
+            archive_button.style.marginRight = '5px';
+
+            // Set content and event based on archived status
+            if (email.archived === true) {
+                archive_button.innerHTML = 'Unarchive';
+                archive_button.addEventListener('click', () => archive_email(email_id, false));
+            } else {
+                archive_button.innerHTML = 'Archive';
+                archive_button.addEventListener('click', () => archive_email(email_id, true));
+            }
+
+            // Append archive button
+            document.querySelector('#email-view').append(archive_button);
+        }
 
         // Add horizontal ruler
         const hr = document.createElement('hr');
