@@ -26,6 +26,9 @@ class User(AbstractUser):
     def number_of_dislikes(self):
         return self.dislikes.all().count()
 
+    def __str__(self):
+        return self.username
+
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
@@ -41,12 +44,21 @@ class Post(models.Model):
     def number_of_dislikes(self):
         return self.dislikes.all().count()
 
+    def __str__(self):
+        return f"Post of '{self.user.username}' at {self.created.strftime('%Y-%m-%d %H:%M')}"
+
 
 class Like(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')
 
+    def __str__(self):
+        return f"Like of '{self.user.username}'"
+
 
 class Dislike(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='dislikes')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='dislikes')
+
+    def __str__(self):
+        return f"Dislike of '{self.user.username}'"
