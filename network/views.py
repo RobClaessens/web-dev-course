@@ -1,10 +1,11 @@
 from django.contrib.auth import authenticate, login, logout
-from django.db import IntegrityError
+from django.contrib.auth.decorators import login_required
+from django.db import Error, IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import User, Post, Like, Dislike
 
 
 def index(request):
@@ -61,3 +62,30 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+
+@login_required
+def new_post(request):
+    if request.method == "POST":
+
+        # Cancel if desired
+        if request.POST.get("cancel"):
+            return HttpResponseRedirect(reverse("index"))
+
+        # Attempt to create new post
+        try:
+
+            # Get text argument
+            text = request.POST["text"]
+
+            # Create post
+            post = Post(text=text, user=request.user)
+            post.save()
+
+        except Error as e:
+            return render(request, "network/new_post.html", {"message": e.message})
+
+        return HttpResponseRedirect(reverse("index"))
+
+    else:
+        return render(request, "network/new_post.html")
