@@ -9,7 +9,9 @@ from .models import User, Post, Like, Dislike
 
 
 def index(request):
-    return render(request, "network/index.html")
+    return render(request, "network/index.html", {
+        "posts": sorted(Post.objects.all(), key=lambda post: post.created, reverse=True)
+    })
 
 
 def login_view(request):

@@ -1,0 +1,23 @@
+body {
+    padding: 10px;
+}
+
+.post {
+    display: flex;
+    width: 60%;
+    margin: 10px;
+    padding: 10px;
+    border: 2px solid black;
+}
+
+.post .text {
+    width: 80%;
+    padding: 10px;
+    border: 1px solid gray;
+}
+
+.post .info {
+    width: 20%;
+    padding: 10px;
+    border: 1px solid gray;
+}
