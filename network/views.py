@@ -68,24 +68,34 @@ def register(request):
 def new_post(request):
     if request.method == "POST":
 
-        # Cancel if desired
-        if request.POST.get("cancel"):
-            return HttpResponseRedirect(reverse("index"))
-
-        # Attempt to create new post
         try:
 
-            # Get text argument
-            text = request.POST["text"]
+            # Cancel if desired
+            if request.POST.get("cancel"):
+                return HttpResponseRedirect(reverse("index"))
 
-            # Create post
-            post = Post(text=text, user=request.user)
-            post.save()
+            # Attempt to create new post
+            elif request.POST.get("post"):
+
+                # Get text argument
+                text = request.POST["text"]
+
+                # Create post if text is provided
+                if text:
+                    post = Post(text=text, user=request.user)
+                    post.save()
+
+                    return HttpResponseRedirect(reverse("index"))
+
+                # Re-render and provide message if text was empty
+                else:
+                    return render(request, "network/new_post.html", {"message": "Please provide text..."})
+
+            else:
+                return HttpResponseRedirect(reverse("index"))
 
         except Error as e:
             return render(request, "network/new_post.html", {"message": e.message})
-
-        return HttpResponseRedirect(reverse("index"))
 
     else:
         return render(request, "network/new_post.html")

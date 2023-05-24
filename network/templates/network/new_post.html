@@ -3,16 +3,18 @@
 {% block body %}
 
     <h2>New post</h2>
+
+    {% if message %}
+        <div>{{ message }}</div>
+    {% endif %}
+
     <form action="{% url 'new_post' %}" method="post">
         {% csrf_token %}
         <div class="form-group">
-            <input class="form-control" autofocus required type="text" name="text" placeholder="...">
+            <input class="form-control" autofocus type="text" name="text" placeholder="...">
         </div>
-        <!-- TODO: Allow not text for cancel button -->
         <input class="btn btn-primary" type="submit" name="cancel" value="Cancel">
         <input class="btn btn-primary" type="submit" name="post" value="Post">
     </form>
-
-    <a href="{% url 'index' %}">Cancel</a>
 
 {% endblock %}
