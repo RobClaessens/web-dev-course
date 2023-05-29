@@ -45,7 +45,18 @@ class Post(models.Model):
         return self.dislikes.all().count()
 
     def __str__(self):
-        return f"Post of '{self.user.username}' at {self.created.strftime('%Y-%m-%d %H:%M')}"
+        return f"Post of '{self.user.username}' at {self.created.strftime('%m/%d/%Y %H:%M')}"
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "username": self.user.username,
+            "text": self.text,
+            "number_of_likes": self.number_of_likes,
+            "number_of_dislikes": self.number_of_dislikes,
+            "time_created": self.created.strftime("%H:%M"),
+            "date_created": self.created.strftime("%m/%d/%Y"),
+        }
 
 
 class Like(models.Model):

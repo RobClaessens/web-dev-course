@@ -11,21 +11,22 @@ body {
 }
 
 .post .text {
-    width: 70%;
+    width: 75%;
     padding: 10px;
     border: 1px solid gray;
 }
 
 .post .info {
     display: block;
+    width: calc(25% - 60px);
 }
 
 .post .rating {
-    display: flex;
+    display: grid;
+    width: 60px;
 }
 
 .post .info, .post .rating {
-    width: 15%;
     padding: 10px;
     border: 1px solid gray;
 }
@@ -33,11 +34,10 @@ body {
 .post .info div {
     text-align: center;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .post .rating .like, .post .rating .dislike {
-    width: 50%;
+    width: 100%;
     text-align: center;
 }
 

@@ -1,9 +1,10 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import Error, IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import User, Post, Like, Dislike
 
@@ -101,3 +102,98 @@ def new_post(request):
 
     else:
         return render(request, "network/new_post.html")
+
+
+@login_required
+def posts(request):
+
+    # Return post contents
+    if request.method == "GET":
+
+        # Get posts sorted in reversed chronological order
+        posts = sorted(Post.objects.all(), key=lambda post: post.created, reverse=True)
+
+        # Return as JSON
+        return JsonResponse([post.serialize() for post in posts], safe=False)
+
+    # Provide error message if not GET request
+    else:
+        return JsonResponse({"error": "GET request required."}, status=400)
+
+
+@login_required
+def post(request, post_id):
+
+    # Query for requested post
+    try:
+        post = Post.objects.get(pk=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=404)
+
+    # Return post contents
+    if request.method == "GET":
+        return JsonResponse(post.serialize())
+
+    # Provide error message if not GET request
+    else:
+        return JsonResponse({"error": "GET request required."}, status=400)
+
+
+@csrf_exempt
+@login_required
+def like_post(request, post_id):
+
+    # Query for liked post
+    try:
+        post = Post.objects.get(pk=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=404)
+
+    if request.method == "PUT":
+        # Skip if user likes his own post
+        if request.user == post.user:
+            pass
+        else:
+            # Either retrieve and delete existing like, or create new like
+            try:
+                like = Like.objects.get(user=request.user, post=post)
+                like.delete()
+            except Like.DoesNotExist:
+                like = Like(user=request.user, post=post)
+                like.save()
+        
+        return HttpResponse(status=204)
+
+    # Only PUT is implemented
+    else:
+        return JsonResponse({"error": "PUT request required."}, status=400)
+
+
+@csrf_exempt
+@login_required
+def dislike_post(request, post_id):
+
+    # Query for disliked post
+    try:
+        post = Post.objects.get(pk=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=404)
+
+    if request.method == "PUT":
+        # Skip if user dislikes his own post
+        if request.user == post.user:
+            pass
+        else:
+            # Either retrieve and delete existing dislike, or create new dislike
+            try:
+                dislike = Dislike.objects.get(user=request.user, post=post)
+                dislike.delete()
+            except Dislike.DoesNotExist:
+                dislike = Dislike(user=request.user, post=post)
+                dislike.save()
+
+        return HttpResponse(status=204)
+
+    # Only PUT is implemented
+    else:
+        return JsonResponse({"error": "PUT request required."}, status=400)

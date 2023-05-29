@@ -1,26 +1,7 @@
 {% extends "network/layout.html" %}
+{% load static %}
 
 {% block body %}
-    {% for post in posts %}
-        <div class="post">
-            <div class="text">
-                {{ post.text }}
-            </div>
-            <div class="rating">
-                <div class="like">
-                    <img src="/static/network/images/thumb_up.png" height="25px" width="80%">
-                    {{ post.number_of_likes }}
-                </div>
-                <div class="dislike">
-                    <img src="/static/network/images/thumb_down.png" height="25px" width="80%">
-                    {{ post.number_of_dislikes }}
-                </div>
-            </div>
-            <div class="info">
-                <div><b>{{ post.user.username }}</b></div>
-                <div><small><i>{{ post.created|date:"H:i" }}</i></small></div>
-                <div><small><i>{{ post.created|date:"M d, Y" }}</i></small></div>
-            </div>
-        </div>
-    {% endfor %}
+    <div id="posts"></div>
+    <script src="{% static 'network/post.js' %}"></script>
 {% endblock %}
