@@ -132,7 +132,7 @@ function like_post(post_id) {
 
         // Handle result
         if (result.status == 204) {
-            load_posts();
+            reload_post(post_id);
         }
     })
     // Catch possible errors
@@ -153,11 +153,44 @@ function dislike_post(post_id) {
 
         // Handle result
         if (result.status == 204) {
-            load_posts();
+            reload_post(post_id);
         }
     })
     // Catch possible errors
     .catch(error => {
         console.log('Error: ', error);
     });
+}
+
+
+function reload_post(post_id) {
+
+    // Get element
+    const post_div = document.getElementById(`post_${post_id}`);
+
+    // Add nested event handlers for chained animations
+    post_div.addEventListener('animationend', () => {
+        post_div.addEventListener('animationend', () => {
+            // Remove animation classes
+            post_div.classList.remove('hide');
+            post_div.classList.remove('unhide');
+        }, { once: true });
+
+        // Reload post
+        fetch(`/posts/${post_id}`)
+        .then(response => response.json())
+        .then(post => {
+            // Clear div
+            post_div.innerHTML = '';
+
+            // Load post
+            load_post(post);
+        });
+
+        // Add unhide class to trigger unhide animation
+        post_div.classList.add('unhide');
+    }, { once: true });
+
+    // Add hide class to trigger hide animation
+    post_div.classList.add('hide');
 }
