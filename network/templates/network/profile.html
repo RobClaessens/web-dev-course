@@ -1,0 +1,11 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+    <div id="profile"></div>
+    <div id="posts"></div>
+    <script>
+        const user_id = "{{ user_id }}";
+    </script>
+    <script src="{% static 'network/post.js' %}"></script>
+{% endblock %}

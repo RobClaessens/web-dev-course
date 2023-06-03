@@ -29,6 +29,19 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+    def serialize(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "number_of_followers": self.number_of_followers,
+            "number_of_follows": self.number_of_follows,
+            "number_of_posts": self.number_of_posts,
+            "number_of_likes": self.number_of_likes,
+            "number_of_dislikes": self.number_of_dislikes,
+            "time_created": self.created.strftime("%H:%M"),
+            "date_created": self.created.strftime("%m/%d/%Y"),
+        }
+
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
@@ -50,6 +63,7 @@ class Post(models.Model):
     def serialize(self):
         return {
             "id": self.id,
+            "user_id": self.user.id,
             "username": self.user.username,
             "text": self.text,
             "number_of_likes": self.number_of_likes,

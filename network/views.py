@@ -15,6 +15,13 @@ def index(request):
     })
 
 
+def profile(request, user_id):
+    return render(request, "network/profile.html", {
+        "user_id": user_id,
+        "posts": sorted(User.objects.get(pk=user_id).posts.all(), key=lambda user: user.created, reverse=True)
+    })
+
+
 def login_view(request):
     if request.method == "POST":
 
@@ -197,3 +204,38 @@ def dislike_post(request, post_id):
     # Only PUT is implemented
     else:
         return JsonResponse({"error": "PUT request required."}, status=400)
+
+
+@login_required
+def users(request):
+
+    # Return user contents
+    if request.method == "GET":
+
+        # Get users sorted in reversed chronological order
+        users = sorted(User.objects.all(), key=lambda user: user.created, reverse=True)
+
+        # Return as JSON
+        return JsonResponse([user.serialize() for user in users], safe=False)
+
+    # Provide error message if not GET request
+    else:
+        return JsonResponse({"error": "GET request required."}, status=400)
+
+
+@login_required
+def user(request, user_id):
+
+    # Query for requested user
+    try:
+        user = User.objects.get(pk=user_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=404)
+
+    # Return user contents
+    if request.method == "GET":
+        return JsonResponse(user.serialize())
+
+    # Provide error message if not GET request
+    else:
+        return JsonResponse({"error": "GET request required."}, status=400)

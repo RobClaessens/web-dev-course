@@ -1,8 +1,105 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Load profile
+    load_profile();
+
     // Load all posts
     load_posts();
 });
 
+
+function load_profile() {
+
+    // Return if no user ID was found
+    if (typeof user_id === 'undefined') { return }
+
+    // Load user
+    fetch(`/users/${user_id}`)
+    .then(response => response.json())
+    .then(user => {
+
+        // Get profile div
+        const profile_div = document.getElementById('profile');
+                
+        // Clear and show the profile view
+        profile_div.innerHTML = '';
+        profile_div.style.display = 'flex';
+
+        // Create info div
+        const info_div = document.createElement('div');
+        info_div.classList.add('info');
+        profile_div.appendChild(info_div);
+
+        // Create username
+        const username_div = document.createElement('div');
+        const username_bold = document.createElement('strong');
+        const username = document.createTextNode(user.username);
+
+        // Append username
+        username_bold.appendChild(username);
+        username_div.appendChild(username_bold);
+        info_div.appendChild(username_div);
+
+        // Append date and time
+        ['Member since:', user.date_created].forEach((date_time) => {
+
+            // Create date and time
+            const date_time_div = document.createElement('div');
+            const date_time_italic = document.createElement('I');
+            const date_time_small = document.createElement('SMALL');
+            const date_time_text = document.createTextNode(date_time);
+
+            // Append date and time
+            date_time_small.appendChild(date_time_text);
+            date_time_italic.appendChild(date_time_small);
+            date_time_div.appendChild(date_time_italic);
+            info_div.appendChild(date_time_div);
+        });
+
+        // TODO: Update this part, to properly show number of follows/followers
+        // Create rating div
+        const rating_div = document.createElement('div');
+        rating_div.classList.add('rating');
+        profile_div.appendChild(rating_div);
+    
+        // Create like div
+        const like_div = document.createElement('div');
+        like_div.classList.add('like');
+        like_div.setAttribute("id", `like_${user.id}`);
+        rating_div.appendChild(like_div);
+    
+        // Append like img, with event handler to like
+        const like_img = document.createElement("img");
+        like_img.src = "/static/network/images/thumb_up.png";
+        like_img.style.height = "25px";
+        like_img.style.width = "80%";
+        like_img.addEventListener('click', () => like_profile(user.id))
+        like_div.appendChild(like_img);
+    
+        // Append number of likes
+        const like_num = document.createTextNode(user.number_of_follows);
+        like_div.appendChild(like_num);
+    
+        // Create dislike div
+        const dislike_div = document.createElement('div');
+        dislike_div.classList.add('dislike');
+        dislike_div.setAttribute("id", `dislike_${user.id}`);
+        rating_div.appendChild(dislike_div);
+    
+        // Append dislike img, with event handler to dislike
+        const dislike_img = document.createElement("img");
+        dislike_img.src = "/static/network/images/thumb_down.png";
+        dislike_img.style.height = "25px";
+        dislike_img.style.width = "80%";
+        dislike_img.addEventListener('click', () => dislike_profile(user.id))
+        dislike_div.appendChild(dislike_img);
+    
+        // Append number of dislikes
+        const dislike_num = document.createTextNode(user.number_of_followers);
+        dislike_div.appendChild(dislike_num);
+
+        // TODO: Add a basic overview, number of posts, likes, dislikes
+    });
+}
 
 function load_posts() {
   
@@ -97,6 +194,7 @@ function load_post(post) {
     const username_div = document.createElement('div');
     const username_bold = document.createElement('strong');
     const username = document.createTextNode(post.username);
+    username_div.addEventListener('click', () => window.open(`/profile/${post.user_id}`, "_self"));
 
     // Append username
     username_bold.appendChild(username);
