@@ -7,7 +7,7 @@ body {
 }
 
 #profile {
-    width: 25%;
+    width: 20%;
 }
 
 .post, #profile {
@@ -34,14 +34,14 @@ body {
 }
 
 #profile .info {
-    width: 50%;
+    width: calc(100% - 60px);
     padding: 10px;
     border: 1px solid gray;
 }
 
 #profile .rating {
-    display: block;
-    width: 50%;
+    display: grid;
+    width: 60px;
 }
 
 .post .info, .post .rating, #profile .info, #profile .rating {
@@ -54,9 +54,13 @@ body {
     overflow: hidden;
 }
 
-.post .rating .like, .post .rating .dislike, #profile .rating .like, #profile .rating .dislike {
+.post .rating .like, .post .rating .dislike, #profile .rating .follower, #profile .rating .follow {
     width: 100%;
     text-align: center;
+}
+
+button {
+    background-color: lightblue;
 }
 
 img {

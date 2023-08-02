@@ -55,49 +55,66 @@ function load_profile() {
             info_div.appendChild(date_time_div);
         });
 
-        // TODO: Update this part, to properly show number of follows/followers
+        // NOTE: Current user or chosen user?
+        // Add 'Follow' or 'Unfollow' button
+        if (user_id !== 'logged_on_user_someone_logged_on')
+        {
+            const button_div = document.createElement('div');
+            if ('logged_on_user_follows'.includes(user_id)){
+                follow_button = document.createElement('button');
+                follow_button.innerHTML = "Follow";
+                follow_button.addEventListener('click', () => follow_profile(user.id))
+                button_div.appendChild(follow_button);
+            } else {
+                unfollow_button = document.createElement('button');
+                unfollow_button.classList.add('button');
+                unfollow_button.innerHTML = "Unfollow";
+                unfollow_button.addEventListener('click', () => follow_profile(user.id))
+                button_div.appendChild(unfollow_button);
+            }
+            info_div.appendChild(button_div);
+        }
+
         // Create rating div
         const rating_div = document.createElement('div');
         rating_div.classList.add('rating');
         profile_div.appendChild(rating_div);
     
-        // Create like div
-        const like_div = document.createElement('div');
-        like_div.classList.add('like');
-        like_div.setAttribute("id", `like_${user.id}`);
-        rating_div.appendChild(like_div);
-    
-        // Append like img, with event handler to like
-        const like_img = document.createElement("img");
-        like_img.src = "/static/network/images/thumb_up.png";
-        like_img.style.height = "25px";
-        like_img.style.width = "80%";
-        like_img.addEventListener('click', () => like_profile(user.id))
-        like_div.appendChild(like_img);
-    
-        // Append number of likes
-        const like_num = document.createTextNode(user.number_of_follows);
-        like_div.appendChild(like_num);
-    
-        // Create dislike div
-        const dislike_div = document.createElement('div');
-        dislike_div.classList.add('dislike');
-        dislike_div.setAttribute("id", `dislike_${user.id}`);
-        rating_div.appendChild(dislike_div);
-    
-        // Append dislike img, with event handler to dislike
-        const dislike_img = document.createElement("img");
-        dislike_img.src = "/static/network/images/thumb_down.png";
-        dislike_img.style.height = "25px";
-        dislike_img.style.width = "80%";
-        dislike_img.addEventListener('click', () => dislike_profile(user.id))
-        dislike_div.appendChild(dislike_img);
-    
-        // Append number of dislikes
-        const dislike_num = document.createTextNode(user.number_of_followers);
-        dislike_div.appendChild(dislike_num);
+        // Create follow div
+        const follow_div = document.createElement('div');
+        follow_div.classList.add('follow');
+        follow_div.setAttribute("id", `follow_${user.id}`);
+        rating_div.appendChild(follow_div);
 
-        // TODO: Add a basic overview, number of posts, likes, dislikes
+        // Append follow img, with event handler to follow
+        const follow_img = document.createElement("img");
+        follow_img.src = "/static/network/images/follows.png";
+        follow_img.style.height = "25px";
+        follow_img.style.width = "80%";
+        follow_img.addEventListener('click', () => follow_profile(user.id))
+        follow_div.appendChild(follow_img);
+
+        // Append number of follows
+        const follow_num = document.createTextNode(user.number_of_follows);
+        follow_div.appendChild(follow_num);
+
+        // Create follower div
+        const follower_div = document.createElement('div');
+        follower_div.classList.add('follower');
+        follower_div.setAttribute("id", `follower_${user.id}`);
+        rating_div.appendChild(follower_div);
+
+        // Append follower img, with event handler to follower
+        const follower_img = document.createElement("img");
+        follower_img.src = "/static/network/images/followers.png";
+        follower_img.style.height = "25px";
+        follower_img.style.width = "80%";
+        follower_img.addEventListener('click', () => follower_profile(user.id))
+        follower_div.appendChild(follower_img);
+
+        // Append number of followers
+        const follower_num = document.createTextNode(user.number_of_followers);
+        follower_div.appendChild(follower_num);
     });
 }
 
