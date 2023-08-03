@@ -38,6 +38,8 @@ class User(AbstractUser):
             "number_of_posts": self.number_of_posts,
             "number_of_likes": self.number_of_likes,
             "number_of_dislikes": self.number_of_dislikes,
+            "followers": [str(follower.id) for follower in self.followers.all()],
+            "follows": [str(follow.id) for follow in self.follows.all()],
             "time_created": self.created.strftime("%H:%M"),
             "date_created": self.created.strftime("%m/%d/%Y"),
         }

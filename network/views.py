@@ -15,10 +15,11 @@ def index(request):
     })
 
 
-def profile(request, user_id):
+def profile(request, profile_id):
     return render(request, "network/profile.html", {
-        "user_id": user_id,
-        "posts": sorted(User.objects.get(pk=user_id).posts.all(), key=lambda user: user.created, reverse=True)
+        "user_id": request.user.id if request.user else None,
+        "profile_id": profile_id,
+        "posts": sorted(User.objects.get(pk=profile_id).posts.all(), key=lambda user: user.created, reverse=True)
     })
 
 
@@ -198,6 +199,62 @@ def dislike_post(request, post_id):
             except Dislike.DoesNotExist:
                 dislike = Dislike(user=request.user, post=post)
                 dislike.save()
+
+        return HttpResponse(status=204)
+
+    # Only PUT is implemented
+    else:
+        return JsonResponse({"error": "PUT request required."}, status=400)
+
+
+@csrf_exempt
+@login_required
+def follow_profile(request, profile_id):
+    # Query for user and profile
+    try:
+        user = User.objects.get(pk=request.user.id)
+        profile = User.objects.get(pk=profile_id)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "Profile not found."}, status=404)
+
+    if request.method == "PUT":
+        # Skip if user tries to follow own profile, essentially impossible
+        if user == profile:
+            pass
+        # Skip if user is already following, essentially impossible
+        elif user in profile.followers.all():
+            pass
+        else:
+            # Add new follower to profile
+            profile.followers.add(user)
+
+        return HttpResponse(status=204)
+
+    # Only PUT is implemented
+    else:
+        return JsonResponse({"error": "PUT request required."}, status=400)
+
+
+@csrf_exempt
+@login_required
+def unfollow_profile(request, profile_id):
+    # Query for user and profile
+    try:
+        user = User.objects.get(pk=request.user.id)
+        profile = User.objects.get(pk=profile_id)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "Profile not found."}, status=404)
+
+    if request.method == "PUT":
+        # Skip if user tries to unfollow own profile, essentially impossible
+        if user == profile:
+            pass
+        # Skip if user is not following, essentially impossible
+        elif user not in profile.followers.all():
+            pass
+        else:
+            # Remove follower from profile
+            profile.followers.remove(user)
 
         return HttpResponse(status=204)
 

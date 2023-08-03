@@ -9,13 +9,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function load_profile() {
 
-    // Return if no user ID was found
-    if (typeof user_id === 'undefined') { return }
+    // Return if no profile ID was found
+    if (typeof profile_id === 'undefined') { return }
 
     // Load user
-    fetch(`/users/${user_id}`)
+    fetch(`/users/${profile_id}`)
     .then(response => response.json())
-    .then(user => {
+    .then(profile => {
 
         // Get profile div
         const profile_div = document.getElementById('profile');
@@ -32,7 +32,7 @@ function load_profile() {
         // Create username
         const username_div = document.createElement('div');
         const username_bold = document.createElement('strong');
-        const username = document.createTextNode(user.username);
+        const username = document.createTextNode(profile.username);
 
         // Append username
         username_bold.appendChild(username);
@@ -40,7 +40,7 @@ function load_profile() {
         info_div.appendChild(username_div);
 
         // Append date and time
-        ['Member since:', user.date_created].forEach((date_time) => {
+        ['Member since:', profile.date_created].forEach((date_time) => {
 
             // Create date and time
             const date_time_div = document.createElement('div');
@@ -55,21 +55,20 @@ function load_profile() {
             info_div.appendChild(date_time_div);
         });
 
-        // NOTE: Current user or chosen user?
-        // Add 'Follow' or 'Unfollow' button
-        if (user_id !== 'logged_on_user_someone_logged_on')
+        // Add 'Follow' or 'Unfollow' button if user is logged on and not checking own profile
+        if (user_id && user_id !== profile_id)
         {
             const button_div = document.createElement('div');
-            if ('logged_on_user_follows'.includes(user_id)){
+            if (!profile.followers.includes(user_id)){
                 follow_button = document.createElement('button');
                 follow_button.innerHTML = "Follow";
-                follow_button.addEventListener('click', () => follow_profile(user.id))
+                follow_button.addEventListener('click', () => follow_profile(profile.id))
                 button_div.appendChild(follow_button);
             } else {
                 unfollow_button = document.createElement('button');
                 unfollow_button.classList.add('button');
                 unfollow_button.innerHTML = "Unfollow";
-                unfollow_button.addEventListener('click', () => follow_profile(user.id))
+                unfollow_button.addEventListener('click', () => unfollow_profile(profile.id))
                 button_div.appendChild(unfollow_button);
             }
             info_div.appendChild(button_div);
@@ -83,37 +82,37 @@ function load_profile() {
         // Create follow div
         const follow_div = document.createElement('div');
         follow_div.classList.add('follow');
-        follow_div.setAttribute("id", `follow_${user.id}`);
+        follow_div.setAttribute("id", `follow_${profile.id}`);
         rating_div.appendChild(follow_div);
 
         // Append follow img, with event handler to follow
         const follow_img = document.createElement("img");
         follow_img.src = "/static/network/images/follows.png";
+        follow_img.title = "Follows"
         follow_img.style.height = "25px";
         follow_img.style.width = "80%";
-        follow_img.addEventListener('click', () => follow_profile(user.id))
         follow_div.appendChild(follow_img);
 
         // Append number of follows
-        const follow_num = document.createTextNode(user.number_of_follows);
+        const follow_num = document.createTextNode(profile.number_of_follows);
         follow_div.appendChild(follow_num);
 
         // Create follower div
         const follower_div = document.createElement('div');
         follower_div.classList.add('follower');
-        follower_div.setAttribute("id", `follower_${user.id}`);
+        follower_div.setAttribute("id", `follower_${profile.id}`);
         rating_div.appendChild(follower_div);
 
         // Append follower img, with event handler to follower
         const follower_img = document.createElement("img");
         follower_img.src = "/static/network/images/followers.png";
+        follower_img.title = "Followers"
         follower_img.style.height = "25px";
         follower_img.style.width = "80%";
-        follower_img.addEventListener('click', () => follower_profile(user.id))
         follower_div.appendChild(follower_img);
 
         // Append number of followers
-        const follower_num = document.createTextNode(user.number_of_followers);
+        const follower_num = document.createTextNode(profile.number_of_followers);
         follower_div.appendChild(follower_num);
     });
 }
@@ -175,6 +174,7 @@ function load_post(post) {
     // Append like img, with event handler to like
     const like_img = document.createElement("img");
     like_img.src = "/static/network/images/thumb_up.png";
+    like_img.title = "Likes"
     like_img.style.height = "25px";
     like_img.style.width = "80%";
     like_img.addEventListener('click', () => like_post(post.id))
@@ -193,6 +193,7 @@ function load_post(post) {
     // Append dislike img, with event handler to dislike
     const dislike_img = document.createElement("img");
     dislike_img.src = "/static/network/images/thumb_down.png";
+    dislike_img.title = "Dislikes"
     dislike_img.style.height = "25px";
     dislike_img.style.width = "80%";
     dislike_img.addEventListener('click', () => dislike_post(post.id))
@@ -269,6 +270,48 @@ function dislike_post(post_id) {
         // Handle result
         if (result.status == 204) {
             reload_post(post_id);
+        }
+    })
+    // Catch possible errors
+    .catch(error => {
+        console.log('Error: ', error);
+    });
+}
+
+
+function follow_profile(profile_id) {
+
+    // PUT request to follow the profile
+    fetch(`/follow_profile/${profile_id}`, {
+        method: 'PUT'
+    })
+    // Listen for result
+    .then(result => {
+
+        // Handle result
+        if (result.status == 204) {
+            // reload_profile(profile_id);
+        }
+    })
+    // Catch possible errors
+    .catch(error => {
+        console.log('Error: ', error);
+    });
+}
+
+
+function unfollow_profile(profile_id) {
+
+    // PUT request to unfollow the profile
+    fetch(`/unfollow_profile/${profile_id}`, {
+        method: 'PUT'
+    })
+    // Listen for result
+    .then(result => {
+
+        // Handle result
+        if (result.status == 204) {
+            // reload_profile(profile_id);
         }
     })
     // Catch possible errors
