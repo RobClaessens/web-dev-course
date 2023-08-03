@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-function load_profile() {
+function load_profile(reload = false) {
 
     // Return if no profile ID was found
     if (typeof profile_id === 'undefined') { return }
@@ -62,14 +62,18 @@ function load_profile() {
             if (!profile.followers.includes(user_id)){
                 follow_button = document.createElement('button');
                 follow_button.innerHTML = "Follow";
+                follow_button.setAttribute("id", 'profile_button');
                 follow_button.addEventListener('click', () => follow_profile(profile.id))
                 button_div.appendChild(follow_button);
+                if (reload) { follow_button.disabled = true; }
             } else {
                 unfollow_button = document.createElement('button');
                 unfollow_button.classList.add('button');
                 unfollow_button.innerHTML = "Unfollow";
+                unfollow_button.setAttribute("id", 'profile_button');
                 unfollow_button.addEventListener('click', () => unfollow_profile(profile.id))
                 button_div.appendChild(unfollow_button);
+                if (reload) { unfollow_button.disabled = true; }
             }
             info_div.appendChild(button_div);
         }
@@ -146,7 +150,7 @@ function load_posts() {
 }
 
 
-function load_post(post) {
+function load_post(post, reload = false) {
 
     // Get post div
     const post_div = document.getElementById(`post_${post.id}`)
@@ -177,8 +181,10 @@ function load_post(post) {
     like_img.title = "Likes"
     like_img.style.height = "25px";
     like_img.style.width = "80%";
+    like_img.setAttribute("id", `like_img_${post.id}`);
     like_img.addEventListener('click', () => like_post(post.id))
     like_div.appendChild(like_img);
+    if (reload) { like_img.classList.add('img-disabled'); }
 
     // Append number of likes
     const like_num = document.createTextNode(post.number_of_likes);
@@ -196,8 +202,10 @@ function load_post(post) {
     dislike_img.title = "Dislikes"
     dislike_img.style.height = "25px";
     dislike_img.style.width = "80%";
+    dislike_img.setAttribute("id", `dislike_img_${post.id}`);
     dislike_img.addEventListener('click', () => dislike_post(post.id))
     dislike_div.appendChild(dislike_img);
+    if (reload) { dislike_img.classList.add('img-disabled'); }
 
     // Append number of dislikes
     const dislike_num = document.createTextNode(post.number_of_dislikes);
@@ -290,7 +298,7 @@ function follow_profile(profile_id) {
 
         // Handle result
         if (result.status == 204) {
-            // reload_profile(profile_id);
+            reload_profile(profile_id);
         }
     })
     // Catch possible errors
@@ -311,7 +319,7 @@ function unfollow_profile(profile_id) {
 
         // Handle result
         if (result.status == 204) {
-            // reload_profile(profile_id);
+            reload_profile(profile_id);
         }
     })
     // Catch possible errors
@@ -332,6 +340,9 @@ function reload_post(post_id) {
             // Remove animation classes
             post_div.classList.remove('hide');
             post_div.classList.remove('unhide');
+            // Re-enable img clicks, by removing CSS class
+            document.getElementById(`like_img_${post_id}`).classList.remove('img-disabled');
+            document.getElementById(`dislike_img_${post_id}`).classList.remove('img-disabled');
         }, { once: true });
 
         // Reload post
@@ -342,7 +353,7 @@ function reload_post(post_id) {
             post_div.innerHTML = '';
 
             // Load post
-            load_post(post);
+            load_post(post, true);
         });
 
         // Add unhide class to trigger unhide animation
@@ -351,4 +362,31 @@ function reload_post(post_id) {
 
     // Add hide class to trigger hide animation
     post_div.classList.add('hide');
+}
+
+
+function reload_profile(profile_id) {
+
+    // Get element
+    const profile_div = document.getElementById('profile');
+
+    // Add nested event handlers for chained animations
+    profile_div.addEventListener('animationend', () => {
+        profile_div.addEventListener('animationend', () => {
+            // Remove animation classes
+            profile_div.classList.remove('hide');
+            profile_div.classList.remove('unhide');
+            // Re-enable button
+            document.getElementById('profile_button').disabled = false;
+        }, { once: true });
+
+        // Load profile
+        load_profile(profile, true);
+
+        // Add unhide class to trigger unhide animation
+        profile_div.classList.add('unhide');
+    }, { once: true });
+
+    // Add hide class to trigger hide animation
+    profile_div.classList.add('hide');
 }
