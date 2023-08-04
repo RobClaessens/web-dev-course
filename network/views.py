@@ -170,17 +170,17 @@ def like_post(request, post_id):
     if request.method == "PUT":
         # Skip if user likes his own post
         if request.user == post.user:
-            pass
+            return HttpResponse(status=204)
         else:
             # Either retrieve and delete existing like, or create new like
             try:
                 like = Like.objects.get(user=request.user, post=post)
                 like.delete()
+                return HttpResponse(status=200)
             except Like.DoesNotExist:
                 like = Like(user=request.user, post=post)
                 like.save()
-        
-        return HttpResponse(status=204)
+                return HttpResponse(status=201)
 
     # Only PUT is implemented
     else:
@@ -200,17 +200,17 @@ def dislike_post(request, post_id):
     if request.method == "PUT":
         # Skip if user dislikes his own post
         if request.user == post.user:
-            pass
+            return HttpResponse(status=204)
         else:
             # Either retrieve and delete existing dislike, or create new dislike
             try:
                 dislike = Dislike.objects.get(user=request.user, post=post)
                 dislike.delete()
+                return HttpResponse(status=200)
             except Dislike.DoesNotExist:
                 dislike = Dislike(user=request.user, post=post)
                 dislike.save()
-
-        return HttpResponse(status=204)
+                return HttpResponse(status=201)
 
     # Only PUT is implemented
     else:

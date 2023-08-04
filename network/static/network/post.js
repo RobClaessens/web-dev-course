@@ -257,8 +257,8 @@ function like_post(post_id) {
     // Listen for result
     .then(result => {
 
-        // Handle result
-        if (result.status == 204) {
+        // Handle result, 200 (existing like removed), 201 (new like created)
+        if (result.status == 200 || result.status == 201) {
             reload_post(post_id);
         }
     })
@@ -278,8 +278,8 @@ function dislike_post(post_id) {
     // Listen for result
     .then(result => {
 
-        // Handle result
-        if (result.status == 204) {
+        // Handle result, 200 (existing dislike removed), 201 (new dislike created)
+        if (result.status == 200 || result.status == 201) {
             reload_post(post_id);
         }
     })
