@@ -113,13 +113,23 @@ def new_post(request):
 
 
 @login_required
-def posts(request):
+def posts(request, profile_id=None):
+
+    # Query for profile
+    try:
+        profile = User.objects.get(pk=profile_id)
+    except User.DoesNotExist:
+        profile = None
 
     # Return post contents
     if request.method == "GET":
 
         # Get posts sorted in reversed chronological order
-        posts = sorted(Post.objects.all(), key=lambda post: post.created, reverse=True)
+        # Get only posts of specific profile if profile is found
+        if profile:
+            posts = sorted(profile.posts.all(), key=lambda post: post.created, reverse=True)
+        else:
+            posts = sorted(Post.objects.all(), key=lambda post: post.created, reverse=True)
 
         # Return as JSON
         return JsonResponse([post.serialize() for post in posts], safe=False)

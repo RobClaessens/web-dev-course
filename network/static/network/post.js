@@ -122,13 +122,16 @@ function load_profile(reload = false) {
 }
 
 function load_posts() {
-  
+
+    // Check if profile ID is defined, otherwise set to 0, which is unused as user ID, count starts at 1
+    if (typeof profile_id === 'undefined') { profile_id = 0; }
+
     // Clear and show the posts view
     document.querySelector('#posts').innerHTML = '';
     document.querySelector('#posts').style.display = 'block';
 
     // Get posts and show
-    fetch(`/posts`)
+    fetch(`/posts/${profile_id}`)
     .then(response => response.json())
     .then(posts => {
 
@@ -346,7 +349,7 @@ function reload_post(post_id) {
         }, { once: true });
 
         // Reload post
-        fetch(`/posts/${post_id}`)
+        fetch(`/post/${post_id}`)
         .then(response => response.json())
         .then(post => {
             // Clear div

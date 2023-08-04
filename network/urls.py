@@ -12,8 +12,8 @@ urlpatterns = [
     path("profile/<int:profile_id>", views.profile, name="profile"),
 
     # API calls from JS
-    path("posts", views.posts, name="posts"),
-    path("posts/<int:post_id>", views.post, name="post"),
+    path("posts/<int:profile_id>", views.posts, name="posts"),
+    path("post/<int:post_id>", views.post, name="post"),
     path("like_post/<int:post_id>", views.like_post, name="like_post"),
     path("dislike_post/<int:post_id>", views.dislike_post, name="dislike_post"),
     path("follow_profile/<int:profile_id>", views.follow_profile, name="follow_profile"),
