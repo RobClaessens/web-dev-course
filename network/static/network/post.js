@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load profile
     load_profile();
 
-    // Load all posts
-    load_posts();
+    // Load posts, starting at page 1, i.e. 10 most recent posts
+    load_posts(1);
 });
 
 
@@ -62,7 +62,7 @@ function load_profile(reload = false) {
             if (!profile.followers.includes(user_id)){
                 follow_button = document.createElement('button');
                 follow_button.innerHTML = "Follow";
-                follow_button.setAttribute("id", 'profile_button');
+                follow_button.setAttribute("id", 'follow_button');
                 follow_button.addEventListener('click', () => follow_profile(profile.id))
                 button_div.appendChild(follow_button);
                 if (reload) { follow_button.disabled = true; }
@@ -70,7 +70,7 @@ function load_profile(reload = false) {
                 unfollow_button = document.createElement('button');
                 unfollow_button.classList.add('button');
                 unfollow_button.innerHTML = "Unfollow";
-                unfollow_button.setAttribute("id", 'profile_button');
+                unfollow_button.setAttribute("id", 'follow_button');
                 unfollow_button.addEventListener('click', () => unfollow_profile(profile.id))
                 button_div.appendChild(unfollow_button);
                 if (reload) { unfollow_button.disabled = true; }
@@ -121,7 +121,7 @@ function load_profile(reload = false) {
     });
 }
 
-function load_posts() {
+function load_posts(page) {
 
     // Check if profile ID is defined, otherwise set to 0, which is unused as user ID, count starts at 1
     if (typeof profile_id === 'undefined') { profile_id = 0; }
@@ -136,7 +136,7 @@ function load_posts() {
     .then(posts => {
 
         // Show posts
-        posts.forEach(post => {
+        posts.slice(page * 10 - 10, page * 10).forEach(post => {
 
             // Create post div
             const post_div = document.createElement('div');
@@ -149,6 +149,40 @@ function load_posts() {
             // Load post
             load_post(post);
         });
+
+        // Create navigation bar at the bottom
+        const navigator = document.createElement("NAV");
+        navigator.setAttribute("id", "navigator");
+        const pages = document.createElement("ul");
+        pages.classList.add("pagination")
+        navigator.appendChild(pages);
+
+        // Add 'Previous' button if not on the first page
+        if (page !== 1) {
+            const previous = document.createElement("li");
+            previous.classList.add("page-item")
+            prev_button = document.createElement('button');
+            prev_button.innerHTML = "Previous";
+            prev_button.setAttribute("id", 'prev_button');
+            prev_button.addEventListener('click', () => load_posts(page - 1))
+            previous.appendChild(prev_button);
+            pages.appendChild(previous);
+        }
+
+        // Add 'Next' button if an additional page of posts is available
+        if (Math.floor(posts.length / 10) >= page) {
+            const next = document.createElement("li");
+            next.classList.add("page-item")
+            next_button = document.createElement('button');
+            next_button.innerHTML = "Next";
+            next_button.setAttribute("id", 'next_button');
+            next_button.addEventListener('click', () => load_posts(page + 1))
+            next.appendChild(next_button);
+            pages.appendChild(next);
+        }
+
+        // Append navigation bar to container div
+        document.querySelector('#posts').append(navigator);
     });
 }
 
@@ -380,7 +414,7 @@ function reload_profile(profile_id) {
             profile_div.classList.remove('hide');
             profile_div.classList.remove('unhide');
             // Re-enable button
-            document.getElementById('profile_button').disabled = false;
+            document.getElementById('follow_button').disabled = false;
         }, { once: true });
 
         // Load profile

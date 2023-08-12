@@ -10,6 +10,11 @@ body {
     width: 20%;
 }
 
+#navigator {
+    display: flex;
+    margin: 10px;
+}
+
 .post, #profile {
     display: flex;
     margin: 10px;
@@ -61,7 +66,14 @@ body {
 
 button {
     background-color: lightblue;
+}
+
+#follow_button {
     margin-top: 5px;
+}
+
+#prev_button, #next_button {
+    margin-right: 10px;
 }
 
 img {
