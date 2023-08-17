@@ -125,13 +125,16 @@ function load_posts(page) {
 
     // Check if profile ID is defined, otherwise set to 0, which is unused as user ID, count starts at 1
     if (typeof profile_id === 'undefined') { profile_id = 0; }
+    // Check if following is defined, otherwise set to false
+    if (typeof following === 'undefined') { following = false; }
 
     // Clear and show the posts view
     document.querySelector('#posts').innerHTML = '';
     document.querySelector('#posts').style.display = 'block';
 
     // Get posts and show
-    fetch(`/posts/${profile_id}`)
+    // Optionally these are only posts by followed profiles or by one specific profile
+    fetch(`/posts/${following ? 'following' : profile_id}`)
     .then(response => response.json())
     .then(posts => {
 

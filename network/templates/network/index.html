@@ -3,5 +3,8 @@
 
 {% block body %}
     <div id="posts"></div>
+    <script>
+        const following = {{ following|yesno:"true,false" }};
+    </script>
     <script src="{% static 'network/post.js' %}"></script>
 {% endblock %}

@@ -11,7 +11,17 @@ from .models import User, Post, Like, Dislike
 
 def index(request):
     return render(request, "network/index.html", {
-        "posts": sorted(Post.objects.all(), key=lambda post: post.created, reverse=True)
+        "posts": sorted(Post.objects.all(), key=lambda post: post.created, reverse=True),
+        "following": False
+    })
+
+
+@login_required
+def following(request):
+    return render(request, "network/index.html", {
+        "posts": sorted(filter(lambda post: post.user in request.user.follows.all(), Post.objects.all()),
+                        key=lambda post: post.created, reverse=True),
+        "following": True
     })
 
 
@@ -125,9 +135,14 @@ def posts(request, profile_id=None):
     if request.method == "GET":
 
         # Get posts sorted in reversed chronological order
+        # Get only posts of followed profiles
+        if request.path.endswith('following'):
+            posts = sorted(filter(lambda post: post.user in request.user.follows.all(), Post.objects.all()),
+                           key=lambda post: post.created, reverse=True)
         # Get only posts of specific profile if profile is found
-        if profile:
+        elif profile:
             posts = sorted(profile.posts.all(), key=lambda post: post.created, reverse=True)
+        # Get all posts
         else:
             posts = sorted(Post.objects.all(), key=lambda post: post.created, reverse=True)
 
