@@ -192,6 +192,9 @@ function load_posts(page) {
 
 function load_post(post, reload = false) {
 
+    // Check if user ID is defined, otherwise set to 0, which is unused as user ID, count starts at 1
+    if (typeof user_id === 'undefined') { user_id = 0; }
+
     // Get post div
     const post_div = document.getElementById(`post_${post.id}`)
 
@@ -222,9 +225,11 @@ function load_post(post, reload = false) {
     like_img.style.height = "25px";
     like_img.style.width = "80%";
     like_img.setAttribute("id", `like_img_${post.id}`);
-    like_img.addEventListener('click', () => like_post(post.id))
+    if (user_id !== post.user_id) {
+        like_img.addEventListener('click', () => like_post(post.id));
+        if (reload) { like_img.classList.add('img-disabled'); }
+    }
     like_div.appendChild(like_img);
-    if (reload) { like_img.classList.add('img-disabled'); }
 
     // Append number of likes
     const like_num = document.createTextNode(post.number_of_likes);
@@ -243,9 +248,11 @@ function load_post(post, reload = false) {
     dislike_img.style.height = "25px";
     dislike_img.style.width = "80%";
     dislike_img.setAttribute("id", `dislike_img_${post.id}`);
-    dislike_img.addEventListener('click', () => dislike_post(post.id))
+    if (user_id !== post.user_id) {
+        dislike_img.addEventListener('click', () => dislike_post(post.id));
+        if (reload) { dislike_img.classList.add('img-disabled'); }
+    }
     dislike_div.appendChild(dislike_img);
-    if (reload) { dislike_img.classList.add('img-disabled'); }
 
     // Append number of dislikes
     const dislike_num = document.createTextNode(post.number_of_dislikes);

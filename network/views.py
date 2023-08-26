@@ -11,6 +11,7 @@ from .models import User, Post, Like, Dislike
 
 def index(request):
     return render(request, "network/index.html", {
+        "user_id": request.user.id if request.user else None,
         "posts": sorted(Post.objects.all(), key=lambda post: post.created, reverse=True),
         "following": False
     })
@@ -19,6 +20,7 @@ def index(request):
 @login_required
 def following(request):
     return render(request, "network/index.html", {
+        "user_id": request.user.id if request.user else None,
         "posts": sorted(filter(lambda post: post.user in request.user.follows.all(), Post.objects.all()),
                         key=lambda post: post.created, reverse=True),
         "following": True
