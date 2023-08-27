@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import Error, IntegrityError
@@ -228,6 +230,38 @@ def dislike_post(request, post_id):
                 dislike = Dislike(user=request.user, post=post)
                 dislike.save()
                 return HttpResponse(status=201)
+
+    # Only PUT is implemented
+    else:
+        return JsonResponse({"error": "PUT request required."}, status=400)
+
+
+@csrf_exempt
+@login_required
+def edit_post(request, post_id):
+
+    # Query for edited post
+    try:
+        post = Post.objects.get(pk=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=404)
+
+    if request.method == "PUT":
+        # Skip if user is not editing own post
+        if request.user != post.user:
+            return HttpResponse(status=204)
+        else:
+            # Get text argument
+            data = json.loads(request.body)
+            text = data.get("text")
+
+            # Update post if text is provided
+            if text:
+                post.text = text
+                post.save()
+                return HttpResponse(status=200)
+            else:
+                return HttpResponse(status=204)
 
     # Only PUT is implemented
     else:

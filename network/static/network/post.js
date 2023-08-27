@@ -190,7 +190,13 @@ function load_posts(page) {
 }
 
 
-function load_post(post, reload = false) {
+function load_post(post, reload = false, edit = false) {
+
+    // Small subfunction that adjusts the height of the text area element to fit its content
+    function adjustTextareaHeight(element) {
+        element.style.height =  "auto";
+        element.style.height = (element.scrollHeight) + 2 + "px";
+    }
 
     // Check if user ID is defined, otherwise set to 0, which is unused as user ID, count starts at 1
     if (typeof user_id === 'undefined') { user_id = 0; }
@@ -198,14 +204,24 @@ function load_post(post, reload = false) {
     // Get post div
     const post_div = document.getElementById(`post_${post.id}`)
 
-    // Create text div
-    const text_div = document.createElement('div');
-    text_div.classList.add('text');
-    post_div.appendChild(text_div);
-
-    // Append text
-    const text = document.createTextNode(post.text);
-    text_div.appendChild(text);
+    // Create text div or text area (if edit)
+    if (edit) {
+        const text_area = document.createElement('textarea');
+        text_area.setAttribute("id", `textarea_${post.id}`);
+        text_area.classList.add('text');
+        text_area.value = post.text
+        post_div.appendChild(text_area);
+        // Resize height so content fits the text area, also attach event handlers that will resize on input or on resize
+        adjustTextareaHeight(text_area);
+        text_area.addEventListener('input', function() { adjustTextareaHeight(text_area) });
+        window.addEventListener('resize', function() { adjustTextareaHeight(text_area) });
+    } else {
+        const text_div = document.createElement('div');
+        text_div.classList.add('text');
+        // For div.innerHTML, \n linebreaks must be parsed to <br>
+        text_div.innerHTML = post.text.replaceAll('\n', '<br>');
+        post_div.appendChild(text_div);
+    }
 
     // Create rating div
     const rating_div = document.createElement('div');
@@ -289,6 +305,31 @@ function load_post(post, reload = false) {
         date_time_div.appendChild(date_time_italic);
         info_div.appendChild(date_time_div);
     });
+    
+    // Add Edit button, or when editing, add Save button
+    if (user_id === post.user_id) {
+        if (!edit) {
+            const button_div = document.createElement('div');
+            edit_button = document.createElement('button');
+            edit_button.classList.add('button');
+            edit_button.innerHTML = "Edit";
+            edit_button.setAttribute("id", `edit_button_${post.id}`);
+            edit_button.addEventListener('click', () => reload_post(post.id, edit=true))
+            button_div.appendChild(edit_button);
+            info_div.appendChild(button_div);
+            if (reload) { edit_button.disabled = true; }
+        } else {
+            const button_div = document.createElement('div');
+            edit_button = document.createElement('button');
+            edit_button.classList.add('button');
+            edit_button.innerHTML = "Save";
+            edit_button.setAttribute("id", `edit_button_${post.id}`);
+            edit_button.addEventListener('click', () => edit_post(post.id))
+            button_div.appendChild(edit_button);
+            info_div.appendChild(button_div);
+            if (reload) { edit_button.disabled = true; }
+        }
+    }
 }
 
 
@@ -324,6 +365,28 @@ function dislike_post(post_id) {
 
         // Handle result, 200 (existing dislike removed), 201 (new dislike created)
         if (result.status == 200 || result.status == 201) {
+            reload_post(post_id);
+        }
+    })
+    // Catch possible errors
+    .catch(error => {
+        console.log('Error: ', error);
+    });
+}
+
+
+function edit_post(post_id) {
+
+    // PUT request to edit the post
+    fetch(`/edit_post/${post_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ text: document.getElementById(`textarea_${post_id}`).value ?? null })
+    })
+    // Listen for result
+    .then(result => {
+
+        // Handle result, 200 (post updated)
+        if (result.status == 200) {
             reload_post(post_id);
         }
     })
@@ -376,7 +439,7 @@ function unfollow_profile(profile_id) {
 }
 
 
-function reload_post(post_id) {
+function reload_post(post_id, edit = false) {
 
     // Get element
     const post_div = document.getElementById(`post_${post_id}`);
@@ -390,6 +453,9 @@ function reload_post(post_id) {
             // Re-enable img clicks, by removing CSS class
             document.getElementById(`like_img_${post_id}`).classList.remove('img-disabled');
             document.getElementById(`dislike_img_${post_id}`).classList.remove('img-disabled');
+            // Re-enable edit and save button if present
+            const edit_button = document.getElementById(`edit_button_${post_id}`);
+            if (edit_button) { edit_button.disabled = false; }
         }, { once: true });
 
         // Reload post
@@ -400,7 +466,7 @@ function reload_post(post_id) {
             post_div.innerHTML = '';
 
             // Load post
-            load_post(post, true);
+            load_post(post, reload=true, edit=edit);
         });
 
         // Add unhide class to trigger unhide animation

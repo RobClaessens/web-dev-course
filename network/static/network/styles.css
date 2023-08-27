@@ -28,6 +28,11 @@ body {
     border: 1px solid gray;
 }
 
+.post .text textarea {
+    height: auto;
+    overflow: hidden;
+}
+
 .post .info {
     display: block;
     width: calc(25% - 60px);
@@ -68,7 +73,7 @@ button {
     background-color: lightblue;
 }
 
-#follow_button {
+#follow_button, button[id^='edit_button'] {
     margin-top: 5px;
 }
 
