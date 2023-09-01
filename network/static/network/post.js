@@ -123,6 +123,8 @@ function load_profile(reload = false) {
 
 function load_posts(page) {
 
+    // Return if no user ID was found, i.e. user is not logged on, no posts will be shown
+    if (typeof user_id === 'undefined' || user_id === 0) { return }
     // Check if profile ID is defined, otherwise set to 0, which is unused as user ID, count starts at 1
     if (typeof profile_id === 'undefined') { profile_id = 0; }
     // Check if following is defined, otherwise set to false
