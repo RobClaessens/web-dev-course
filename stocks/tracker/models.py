@@ -29,10 +29,19 @@ class Stock(models.Model):
     name = models.CharField(max_length=32)
     symbol = models.CharField(max_length=6)
     exchange = models.CharField(max_length=6)
-    ISIN = models.CharField(max_length=12)
+    ISIN = models.CharField(max_length=12, unique=True)
 
     def __str__(self):
         return f"Stock {self.name} ({self.symbol}) - {self.exchange}"
+
+
+class StockWatch(models.Model):
+    date = models.DateField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlist')
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Watch on {self.stock.name} by '{self.user.username}'"
 
 
 class Transaction(models.Model):
@@ -53,7 +62,7 @@ class StockTransaction(Transaction):
     costs = models.DecimalField(max_digits=3, decimal_places=2)
 
     def __str__(self):
-        return f"Stock transaction {self.stock.name} ({self.stock.symbol}) - " \
+        return f"{self.__class__.__name__} {self.stock.name} ({self.stock.symbol}) - " \
                f"{self.amount} shares @ {self.currency}{self.price} on {self.date}"
 
 
@@ -64,7 +73,7 @@ class FiatTransaction(Transaction):
     costs = models.DecimalField(max_digits=3, decimal_places=2)
 
     def __str__(self):
-        return f"Fiat transaction {self.currency}{self.amount} on {self.date}"
+        return f"{self.__class__.__name__} {self.currency}{self.amount} on {self.date}"
 
 
 class StockDividend(StockTransaction):
