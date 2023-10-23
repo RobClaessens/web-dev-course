@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block body %}
+    <div id="stocks"></div>
+    <script>
+        // const user_id = {{ user_id }};
+        // const following = {{ following|yesno:"true,false" }};
+    </script>
+    <script src="{% static 'tracker.js' %}"></script>
+{% endblock %}
