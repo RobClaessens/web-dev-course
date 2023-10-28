@@ -31,6 +31,15 @@ class Stock(models.Model):
     exchange = models.CharField(max_length=6)
     ISIN = models.CharField(max_length=12, unique=True)
 
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "symbol": self.symbol,
+            "exchange": self.exchange,
+            "ISIN": self.ISIN,
+        }
+
     def __str__(self):
         return f"Stock {self.name} ({self.symbol}) - {self.exchange}"
 
