@@ -3,9 +3,10 @@
 
 {% block body %}
     <div id="stocks"></div>
-    <script>
-        // const user_id = {{ user_id }};
-        // const following = {{ following|yesno:"true,false" }};
+    <script data-user-id="{{ user_id }}" data-watchlist="{{ watchlist }}">
+        const data = document.currentScript.dataset;
+        const userId = JSON.parse(data.userId);
+        const watchlist = JSON.parse(data.watchlist);
     </script>
     <script src="{% static 'tracker.js' %}"></script>
 {% endblock %}

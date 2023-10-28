@@ -6,11 +6,22 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import User
+from .models import User, Portfolio, Stock, StockWatch
 
 
 def index(request):
-    return render(request, "index.html", {})
+    return render(request, "index.html", {
+        "user_id": request.user.id or "null",
+        "watchlist": "false",
+    })
+
+
+@login_required
+def watchlist(request):
+    return render(request, "index.html", {
+        "user_id": request.user.id,
+        "watchlist": "true",
+    })
 
 
 def login_view(request):
@@ -63,3 +74,37 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "register.html")
+
+
+def stocks(request):
+
+    # Return stock contents
+    if request.method == "GET":
+
+        # Get all stocks
+        return JsonResponse([s.serialize() for s in sorted(Stock.objects.all(), key=lambda s: s.name)], safe=False)
+
+    # Provide error message if not GET request
+    else:
+        return JsonResponse({"error": "GET request required."}, status=400)
+
+
+@login_required
+def watched_stocks(request, user_id):
+
+    # Get user
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found."}, status=404)
+
+    # Return stock contents
+    if request.method == "GET":
+
+        # Get stocks from user's watchlist
+        return JsonResponse([w.stock.serialize() for w in sorted(user.watchlist.all(), key=lambda w: w.stock.name)],
+                            safe=False)
+
+    # Provide error message if not GET request
+    else:
+        return JsonResponse({"error": "GET request required."}, status=400)
