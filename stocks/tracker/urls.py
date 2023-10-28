@@ -13,5 +13,5 @@ urlpatterns = [
 
     # API endpoints
     path("stocks", views.stocks, name="stocks"),
-    path("watched_stocks/<int:user_id>", views.watched_stocks, name="watched_stocks"),
+    path("watched_stocks", views.watched_stocks, name="watched_stocks"),
 ]

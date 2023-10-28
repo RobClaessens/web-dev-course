@@ -22,7 +22,7 @@ function load_stocks() {
         // If user is logged on, include column with watched stocks
         if (userId) {
             // Load watched stocks
-            fetch(`/watched_stocks/${userId}`)
+            fetch(`/watched_stocks`)
             .then(response => response.json())
             .then(watched_stocks => {
 
@@ -68,7 +68,7 @@ function load_watched_stocks() {
     document.querySelector('#stocks').style.display = 'block';
 
     // Load stocks
-    fetch(`/watched_stocks/${userId}`)
+    fetch(`/watched_stocks`)
     .then(response => response.json())
     .then(watched_stocks => {
 

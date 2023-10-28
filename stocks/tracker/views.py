@@ -90,19 +90,13 @@ def stocks(request):
 
 
 @login_required
-def watched_stocks(request, user_id):
-
-    # Get user
-    try:
-        user = User.objects.get(pk=user_id)
-    except User.DoesNotExist:
-        return JsonResponse({"error": "User not found."}, status=404)
+def watched_stocks(request):
 
     # Return stock contents
     if request.method == "GET":
 
         # Get stocks from user's watchlist
-        return JsonResponse([w.stock.serialize() for w in sorted(user.watchlist.all(), key=lambda w: w.stock.name)],
+        return JsonResponse([w.stock.serialize() for w in sorted(request.user.watchlist.all(), key=lambda w: w.stock.name)],
                             safe=False)
 
     # Provide error message if not GET request
