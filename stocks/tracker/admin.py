@@ -6,6 +6,7 @@ from .models import *
 admin.site.register(User)
 admin.site.register(Portfolio)
 admin.site.register(Stock)
+admin.site.register(StockWatch)
 admin.site.register(StockTransaction)
 admin.site.register(FiatTransaction)
 admin.site.register(StockDividend)
