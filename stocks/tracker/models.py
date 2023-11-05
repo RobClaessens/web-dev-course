@@ -1,10 +1,12 @@
 import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import requests
 
 
 class User(AbstractUser):
     created = models.DateField(auto_now_add=True)
+    ms_api_key = models.CharField(max_length=32, null=True, blank=True)
 
     def __str__(self):
         return f"User '{self.username}'"
@@ -31,6 +33,40 @@ class Stock(models.Model):
     exchange = models.CharField(max_length=6)
     ISIN = models.CharField(max_length=12, unique=True)
 
+    # Fields to cache Polygon API response
+    ms_symbol = models.CharField(max_length=32, null=True, blank=True)
+    ms_price = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    ms_update = models.DateField(null=True, blank=True)
+
+    def update_price(self, api_key):
+        return self._update_ms_price(api_key)
+
+    def _update_ms_symbol(self, api_key):
+        # Retrieve symbol if not cached
+        if not self.ms_symbol:
+            url = f"http://api.marketstack.com/v1/tickers?access_key={api_key}&exchange={self.exchange}&search={self.symbol}"
+            response = requests.get(url)
+            data = response.json()
+            # TODO: Set boolean eod?
+            if len(data.get('data')) == 1:
+                self.ms_symbol = data.get('data')[0]['symbol']
+                self.save()
+
+        return self.ms_symbol
+
+    def _update_ms_price(self, api_key):
+        # Update price if not yet updated today
+        if self.ms_update != datetime.date.today():
+            url = f"http://api.marketstack.com/v1/tickers/{self._update_ms_symbol(api_key)}/eod/latest?access_key={api_key}"
+            response = requests.get(url)
+            data = response.json()
+            if data.get('close'):
+                self.ms_price = data.get('close')
+                self.ms_update = datetime.date.today()
+                self.save()
+
+        return self.ms_price
+
     def serialize(self):
         return {
             "id": self.id,
@@ -38,6 +74,8 @@ class Stock(models.Model):
             "symbol": self.symbol,
             "exchange": self.exchange,
             "ISIN": self.ISIN,
+            # TODO: Include currency
+            "price": self.ms_price,
         }
 
     def __str__(self):

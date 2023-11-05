@@ -81,6 +81,10 @@ def stocks(request):
     # Return stock contents
     if request.method == "GET":
 
+        # Update stock prices if user is logged on
+        if request.user.is_authenticated and request.user.ms_api_key:
+            [s.update_price(api_key=request.user.ms_api_key) for s in Stock.objects.all()]
+
         # Get all stocks
         return JsonResponse([s.serialize() for s in sorted(Stock.objects.all(), key=lambda s: s.name)], safe=False)
 
@@ -94,6 +98,10 @@ def watched_stocks(request):
 
     # Return stock contents
     if request.method == "GET":
+
+        # Update stock prices if user is logged on
+        if request.user.is_authenticated and request.user.ms_api_key:
+            [w.stock.update_price(api_key=request.user.ms_api_key) for w in request.user.watchlist.all()]
 
         # Get stocks from user's watchlist
         return JsonResponse([w.stock.serialize() for w in sorted(request.user.watchlist.all(), key=lambda w: w.stock.name)],

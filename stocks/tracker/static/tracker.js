@@ -39,6 +39,7 @@ function load_stocks() {
                         {title: "Symbol", field: "symbol", width: 100},
                         {title: "Exchange", field: "exchange", width: 100},
                         {title: "ISIN", field: "ISIN", width: 150},
+                        {title: "Price", field: "price", width: 150},
                         {title: "Watchlist", field: "watched", formatter: "tickCross", width: 100},
                     ],
                 });
@@ -54,6 +55,7 @@ function load_stocks() {
                     {title: "Symbol", field: "symbol", width: 150},
                     {title: "Exchange", field: "exchange", width: 150},
                     {title: "ISIN", field: "ISIN", width: 150},
+                    {title: "Price", field: "price", width: 150},
                 ],
             });
         }
@@ -85,6 +87,7 @@ function load_watched_stocks() {
                 {title: "Symbol", field: "symbol", width: 150},
                 {title: "Exchange", field: "exchange", width: 150},
                 {title: "ISIN", field: "ISIN", width: 150},
+                {title: "Price", field: "price", width: 150},
                 {title: "Watchlist", field: "watched", formatter: "tickCross", width: 150},
             ],
         });
