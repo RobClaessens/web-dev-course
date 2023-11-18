@@ -6,8 +6,18 @@
         <title>{% block title %}Stocks{% endblock %}</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
         <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@5.5.2/dist/css/tabulator.min.css">
-        <link rel="stylesheet" href="{% static 'tracker/static/styles.css' %}">
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
         <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
+        <script type="text/javascript">
+            // Some JavaScript to make the sidebar fill the screen vertically
+            function setSidebarHeight() {
+                const sidebar = document.querySelector(".sidebar");
+                sidebar.style.height = `${window.innerHeight - sidebar.offsetTop}px`;
+            }
+            // Attach function to DOMContentLoaded and resize events
+            document.addEventListener("DOMContentLoaded", setSidebarHeight);
+            window.addEventListener("resize", setSidebarHeight);
+        </script>
     </head>
     <body>
 
@@ -29,7 +39,7 @@
                             <a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'index' %}">Portfolios</a>
+                            <a class="nav-link" href="{% url 'portfolios' %}">Portfolios</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
@@ -45,8 +55,14 @@
                 </ul>
             </div>
         </nav>
-        
+
         <div class="body">
+
+            <div class="sidebar">
+                {% block sidebar %}
+                {% endblock %}
+            </div>
+        
             {% block body %}
             {% endblock %}
         </div>

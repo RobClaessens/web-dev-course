@@ -24,6 +24,16 @@ def watchlist(request):
     })
 
 
+@login_required
+def portfolios(request, portfolio_id=None):
+    return render(request, "portfolios.html", {
+        "user_id": request.user.id,
+        "watchlist": "false",
+        "portfolios": [p.serialize() for p in request.user.portfolios.all()],
+        "portfolio_id": portfolio_id or "null",
+    })
+
+
 def login_view(request):
     if request.method == "POST":
 
@@ -106,6 +116,52 @@ def watched_stocks(request):
         # Get stocks from user's watchlist
         return JsonResponse([w.stock.serialize() for w in sorted(request.user.watchlist.all(), key=lambda w: w.stock.name)],
                             safe=False)
+
+    # Provide error message if not GET request
+    else:
+        return JsonResponse({"error": "GET request required."}, status=400)
+
+
+@login_required
+def portfolio(request, portfolio_id):
+
+    # Get portfolio
+    try:
+        portfolio = Portfolio.objects.get(pk=portfolio_id)
+    except Error:
+        return JsonResponse({"error": "Portfolio not found."}, status=404)
+
+    # Try to retrieve portfolio price
+    if request.method == "GET":
+
+        # Setup portfolio dictionary
+        portfolio_dict = dict()
+
+        # Iterate through stock transactions to setup portfolio
+        for transaction in portfolio.stocktransactions.all():
+            stock_dict = transaction.stock.serialize()
+            stock_id = stock_dict.get('id')
+            if stock_id not in portfolio_dict:
+                portfolio_dict[stock_id] = {
+                    **stock_dict,
+                    # TODO: Include currency in Stock model?
+                    'currency': transaction.currency,
+                    'amount': 0,
+                    'total_cost': 0,
+                    'total_price': 0,
+                    'realized_price': 0,
+                }
+            portfolio_dict[stock_id]['amount'] += transaction.amount
+            portfolio_dict[stock_id]['total_cost'] += transaction.costs
+            if transaction.amount > 0:
+                portfolio_dict[stock_id]['total_price'] += transaction.amount * transaction.price
+
+        # Calculate realized price and unrealized PnL
+        for stock_id in portfolio_dict:
+            portfolio_dict[stock_id]['realized_price'] = portfolio_dict[stock_id]['total_price'] / portfolio_dict[stock_id]['amount']
+            portfolio_dict[stock_id]['unrealized_pnl'] = portfolio_dict[stock_id]['amount'] * portfolio_dict[stock_id]['price'] - portfolio_dict[stock_id]['total_price']
+
+        return JsonResponse([s for s in sorted(portfolio_dict.values(), key=lambda s: s['name'])], safe=False)
 
     # Provide error message if not GET request
     else:

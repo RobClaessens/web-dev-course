@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Load stocks
     if (watchlist) {
-        load_watched_stocks()
+        load_watched_stocks();
+    } else if (portfolios) {
+        load_portfolio();
     } else {
         load_stocks();
     }
@@ -34,12 +36,13 @@ function load_stocks() {
                     height: "100%",
                     data: stocks,
                     layout: "fitData",
+                    // TODO: Include currency in hidden column, once added to Stock model (instead of transaction)
                     columns: [
                         {title: "Name", field: "name", width: 150},
                         {title: "Symbol", field: "symbol", width: 100},
                         {title: "Exchange", field: "exchange", width: 100},
                         {title: "ISIN", field: "ISIN", width: 150},
-                        {title: "Price", field: "price", width: 150},
+                        {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
                         {title: "Watchlist", field: "watched", formatter: "tickCross", width: 100},
                     ],
                 });
@@ -50,12 +53,13 @@ function load_stocks() {
                 height: "100%",
                 data: stocks,
                 layout: "fitData",
+                // TODO: Include currency in hidden column, once added to Stock model (instead of transaction)
                 columns: [
                     {title: "Name", field: "name", width: 150},
                     {title: "Symbol", field: "symbol", width: 150},
                     {title: "Exchange", field: "exchange", width: 150},
                     {title: "ISIN", field: "ISIN", width: 150},
-                    {title: "Price", field: "price", width: 150},
+                    {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
                 ],
             });
         }
@@ -87,9 +91,64 @@ function load_watched_stocks() {
                 {title: "Symbol", field: "symbol", width: 150},
                 {title: "Exchange", field: "exchange", width: 150},
                 {title: "ISIN", field: "ISIN", width: 150},
-                {title: "Price", field: "price", width: 150},
+                {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
                 {title: "Watchlist", field: "watched", formatter: "tickCross", width: 150},
             ],
         });
     });
+}
+
+
+function load_portfolio() {
+
+    // Clear and show the stocks view
+    document.querySelector('#portfolio').innerHTML = '';
+    document.querySelector('#portfolio').style.display = 'block';
+
+    // Load portfolio
+    fetch(`/portfolio/${portfolioId}`)
+    .then(response => response.json())
+    .then(portfolio_stocks => {
+
+        // Create Tabulator on DOM element
+        const table = new Tabulator("#portfolio", {
+            height: "100%",
+            data: portfolio_stocks,
+            layout: "fitData",
+            columns: [
+                {title: "Name", field: "name", width: 150},
+                {title: "Symbol", field: "symbol", width: 150},
+                {title: "Exchange", field: "exchange", width: 150},
+                {title: "ISIN", field: "ISIN", width: 150},
+                {title: "Currency", field: "currency", visible: false},
+                {title: "Amount", field: "amount", width: 150},
+                {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
+                {title: "Realized price", field: "realized_price", width: 150, formatter: currencyFormatter},
+                // TODO: Implement summation with currency conversion, including addition of classes
+                {title: "Unrealized PnL", field: "unrealized_pnl", width: 150, formatter: pnlFormatter, bottomCalc: "sum"},
+            ],
+        });
+    });
+}
+
+
+// TODO: Move to a (tabulator) utils file
+function currencyFormatter(cell, formatterParams, onRendered) {
+    if (cell.getData().currency) { cell.getElement().classList.add(cell.getData().currency.toLowerCase()); }
+    return cell.getValue();
+}
+
+function pnlFormatter(cell, formatterParams, onRendered) {
+
+    // Get value from cell
+    const value = cell.getValue();
+
+    // Add 'profit' or 'loss' class depending on value
+    if (value > 0) {
+        cell.getElement().classList.add('profit');
+    } else if (value < 0) {
+        cell.getElement().classList.add('loss');
+    }
+
+    return currencyFormatter(cell, formatterParams, onRendered);
 }

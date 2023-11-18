@@ -1,0 +1,43 @@
+.body {
+    display: flex;
+}
+
+.sidebar {
+    width: fit-content;
+}
+
+.sidebar-expanded {
+    width: 200px;
+    height: 100%;
+    display: block;
+}
+
+.sidebar-collapsed {
+    width: 50px;
+    height: 100%;
+    display: block;
+}
+
+#stocks, #portfolio {
+    margin: 20px;
+}
+
+.eur:before {
+    content: "€";
+}
+
+.usd:before {
+    content: "$";
+}
+
+.gbp:before {
+    content: "£";
+}
+
+.profit {
+    color: green;
+}
+
+.loss {
+    color: red;
+}

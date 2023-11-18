@@ -1,11 +1,33 @@
 {% extends "layout.html" %}
 {% load static %}
 
+{% block sidebar %}
+
+    <!-- TODO: Properly set id of sidebar and allow to collapse / expand -->
+    <nav class="sidebar-expanded navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{% url 'portfolios' %}">Portfolios</a>
+
+        <div>
+            <ul class="navbar-nav flex-column">
+                {% for portfolio in portfolios %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'portfolios' portfolio.id %}">{{ portfolio.name }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </nav>
+
+{% endblock %}
+
 {% block body %}
-    <div id="portfolios"></div>
-    <script>
-        // const user_id = {{ user_id }};
-        // const profile_id = {{ profile_id }};
+    <div id="portfolio"></div>
+    <script data-user-id="{{ user_id }}" data-watchlist="{{ watchlist }}" data-portfolios="{{ portfolios }}" data-portfolio-id="{{ portfolio_id }}">
+        const data = document.currentScript.dataset;
+        const userId = JSON.parse(data.userId);
+        const watchlist = JSON.parse(data.watchlist);
+        const portfolios = data.portfolios;
+        const portfolioId = JSON.parse(data.portfolioId);
     </script>
     <script src="{% static 'tracker.js' %}"></script>
 {% endblock %}
