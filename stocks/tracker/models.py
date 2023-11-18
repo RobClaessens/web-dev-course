@@ -15,12 +15,18 @@ class User(AbstractUser):
 class Portfolio(models.Model):
     """Model representing a stock portfolio."""
     name = models.CharField(max_length=32)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolios')
 
     @property
     def transactions(self):
-        return self.stock_transactions.all() + self.fiat_transactions.all() + \
-            self.stock_dividends.all() + self.fiat_dividends.all()
+        return self.stocktransactions.all() + self.fiattransactions.all() + \
+            self.stockdividends.all() + self.fiatdividends.all()
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
 
     def __str__(self):
         return f"Portfolio {self.name} of '{self.user.username}'"
@@ -97,7 +103,7 @@ class StockWatch(models.Model):
 class Transaction(models.Model):
     """Model representing a transaction."""
     date = models.DateField(default=datetime.date.today)
-    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='%(class)s')
+    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='%(class)ss')
 
     class Meta:
         abstract = True
