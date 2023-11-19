@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+    <div id="add-form">
+
+        {% if message %}
+            <label class="col-form-label-sm error-label" for="error-message">An error occurred:</label>
+            <div id="error-message" class="error-message">{{ message }}</div>
+        {% endif %}
+
+        <form action="{% url 'add_portfolio' %}" method="post">
+            {% csrf_token %}
+            <label class="col-form-label-lg">Add portfolio</label>
+            <div class="form-group">
+                <input class="form-control form-control-sm" autofocus required type="text" name="name" placeholder="Name">
+            </div>
+            <div id="add-form-buttons">
+                <input class="btn btn-primary" type="submit" value="Add">
+                <a class="btn btn-primary" href="{% url 'portfolios' %}">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}

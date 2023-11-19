@@ -98,7 +98,7 @@ def add_stock(request):
         ISIN = request.POST["ISIN"]
         currency = request.POST["currency"]
         watch = request.POST.get("watch")
-        next = request.POST.get("next")
+        previous = request.POST.get("previous")
 
         # Get possible new exchange and currency
         if exchange == 'other':
@@ -132,14 +132,50 @@ def add_stock(request):
                 "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
             })
 
-        return HttpResponseRedirect(next or reverse("index"))
+        return HttpResponseRedirect(previous or reverse("index"))
 
     else:
         return render(request, "add_stock.html", {
             "exchanges": sorted(set([s.exchange for s in Stock.objects.all()])),
             "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
-            "next": urlparse(request.META.get('HTTP_REFERER', '')).path,
+            "previous": urlparse(request.META.get('HTTP_REFERER', '')).path.strip('/'),
         })
+
+
+@login_required
+def add_portfolio(request):
+    if request.method == "POST":
+
+        # Get required arguments
+        name = request.POST["name"]
+
+        # Attempt to add new portfolio
+        try:
+
+            # If portfolio already exists, return error
+            if Portfolio.objects.filter(user=request.user, name=name).exists():
+                raise IntegrityError("Portfolio name already exists")
+
+            # Create portfolio and save
+            portfolio = Portfolio(user=request.user, name=name)
+            portfolio.save()
+
+        except Error as e:
+            if hasattr(e, 'message'):
+                message = e.message
+            elif hasattr(e, 'args'):
+                message = e.args[0]
+            else:
+                message = "Unknown error while adding portfolio"
+
+            return render(request, "add_portfolio.html", {
+                "message": message,
+            })
+
+        return HttpResponseRedirect(f"portfolios/{portfolio.id}")
+
+    else:
+        return render(request, "add_portfolio.html")
 
 
 def stocks(request):

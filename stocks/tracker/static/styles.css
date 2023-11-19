@@ -28,6 +28,10 @@
     padding-bottom: 1px;
 }
 
+.nav-item-add {
+    font-style: italic;
+}
+
 .error-label {
     margin-bottom: 0;
 }

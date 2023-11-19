@@ -50,7 +50,7 @@
                 <input id="new-currency" class="form-control form-control-sm" type="hidden" name="new_currency" placeholder="New currency">
             </div>
             <div class="form-group">
-                {% if 'watchlist' in next %}
+                {% if 'watchlist' in previous %}
                     <input id="watch" type="checkbox" name="watch" checked>
                 {% else %}
                     <input id="watch" type="checkbox" name="watch">
@@ -58,11 +58,11 @@
                 <label class="col-form-label-sm" for="watch">Add to watchlist</label>
             </div>
             <div class="form-group">
-                <input type="hidden" name="next" value="{{ next }}">
+                <input type="hidden" name="previous" value="{{ previous }}">
             </div>
             <div id="add-form-buttons">
                 <input class="btn btn-primary" type="submit" value="Add">
-                <a class="btn btn-primary" href="{% url 'index' %}">Cancel</a>
+                <a class="btn btn-primary" href="{% url previous %}">Cancel</a>
             </div>
         </form>
     </div>

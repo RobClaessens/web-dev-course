@@ -11,8 +11,8 @@
             <ul class="navbar-nav flex-column">
                 {% for portfolio in portfolios %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'portfolios' portfolio.id %}">{{ portfolio.name }}</a>
                         {% if portfolio_id == portfolio.id %}
+                            <a class="nav-link" href="{% url 'portfolios' portfolio.id %}"><b>{{ portfolio.name }}</b></a>
                             <ul class="navbar-nav flex-column">
                                 <li class="nav-item nav-item-nested">
                                     <a class="nav-link nav-link-nested" href="{% url 'add_transaction' portfolio.id %}">Add transaction</a>
@@ -21,9 +21,14 @@
                                     <a class="nav-link nav-link-nested" href="{% url 'add_dividend' portfolio.id %}">Add dividend</a>
                                 </li>
                             </ul>
+                        {% else %}
+                            <a class="nav-link" href="{% url 'portfolios' portfolio.id %}">{{ portfolio.name }}</a>
                         {% endif %}
                     </li>
                 {% endfor %}
+                <li class="nav-item nav-item-add">
+                    <a class="nav-link" href="{% url 'add_portfolio' %}">Add portfolio</a>
+                </li>
             </ul>
         </div>
     </nav>
