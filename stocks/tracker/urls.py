@@ -16,7 +16,7 @@ urlpatterns = [
     # Addition views
     path("add_stock", views.add_stock, name="add_stock"),
     path("add_portfolio", views.add_portfolio, name="add_portfolio"),
-    path("add_transaction/<int:portfolio_id>", views.add_stock, name="add_transaction"),
+    path("add_transaction/<int:portfolio_id>", views.add_transaction, name="add_transaction"),
     path("add_dividend/<int:portfolio_id>", views.add_stock, name="add_dividend"),
     path("toggle_watch/<int:stock_id>", views.toggle_watch, name="toggle_watch"),
 

@@ -49,12 +49,12 @@
     width: 300px;
 }
 
-#add-form-buttons {
+.add-form-buttons, .form-group-currency {
     display: flex;
     justify-content: space-between;
 }
 
-#add-form-buttons .btn-primary {
+.add-form-buttons .btn-primary, .form-group-currency select, .form-group-currency input {
     width: 48%;
 }
 

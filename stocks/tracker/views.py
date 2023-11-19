@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from urllib.parse import urlparse
 
-from .models import User, Portfolio, Stock, StockWatch
+from .models import User, Portfolio, Stock, StockWatch, StockTransaction, StockDividend, FiatTransaction, FiatDividend
 
 
 def index(request):
@@ -118,6 +118,8 @@ def add_stock(request):
                 watch = StockWatch(user=request.user, stock=stock)
                 watch.save()
 
+            return HttpResponseRedirect(reverse(previous))
+
         except Error as e:
             if hasattr(e, 'message'):
                 message = e.message
@@ -130,15 +132,14 @@ def add_stock(request):
                 "message": message,
                 "exchanges": sorted(set([s.exchange for s in Stock.objects.all()])),
                 "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
+                "previous": previous,
             })
-
-        return HttpResponseRedirect(previous or reverse("index"))
 
     else:
         return render(request, "add_stock.html", {
             "exchanges": sorted(set([s.exchange for s in Stock.objects.all()])),
             "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
-            "previous": urlparse(request.META.get('HTTP_REFERER', '')).path.strip('/'),
+            "previous": urlparse(request.META.get('HTTP_REFERER', '')).path.strip('/') or 'index',
         })
 
 
@@ -160,6 +161,8 @@ def add_portfolio(request):
             portfolio = Portfolio(user=request.user, name=name)
             portfolio.save()
 
+            return HttpResponseRedirect(f"/portfolios/{portfolio.id}")
+
         except Error as e:
             if hasattr(e, 'message'):
                 message = e.message
@@ -172,10 +175,61 @@ def add_portfolio(request):
                 "message": message,
             })
 
-        return HttpResponseRedirect(f"portfolios/{portfolio.id}")
-
     else:
         return render(request, "add_portfolio.html")
+
+
+# TODO: One endpoint but make specific functions per type of transaction?
+@login_required
+def add_transaction(request, portfolio_id):
+    if request.method == "POST":
+
+        # Get required arguments
+        stock_id = request.POST["stock_id"]
+        transaction_type = request.POST["transaction_type"]
+        amount = request.POST["amount"]
+        price = request.POST["price"]
+        # price_currency = request.POST["price_currency"]   # Basically not needed, defaults to stock currency
+        costs = request.POST["costs"]
+        costs_currency = request.POST["costs_currency"]
+
+        # Attempt to add new transaction
+        try:
+
+            # TODO: Implement all transaction types
+            # TODO: Update model to allow different cost currencies
+            # Create transaction and save
+            transaction = StockTransaction(portfolio=Portfolio.objects.get(pk=portfolio_id),
+                                           stock=Stock.objects.get(pk=stock_id),
+                                           amount=amount,
+                                           price=price,
+                                           currency=Stock.objects.get(pk=stock_id).currency,
+                                           costs=costs)
+            transaction.save()
+
+            return HttpResponseRedirect(f"/portfolios/{portfolio_id}")
+
+        except Error as e:
+            if hasattr(e, 'message'):
+                message = e.message
+            elif hasattr(e, 'args'):
+                message = e.args[0]
+            else:
+                message = "Unknown error while adding transaction"
+
+            return render(request, "add_transaction.html", {
+                "message": message,
+                "portfolio": Portfolio.objects.get(pk=portfolio_id),
+                "stocks": sorted(Stock.objects.all(), key=lambda s: s.name),
+                "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
+            })
+
+    else:
+        return render(request, "add_transaction.html", {
+            "portfolio": Portfolio.objects.get(pk=portfolio_id),
+            "stocks": sorted(Stock.objects.all(), key=lambda s: s.name),
+            "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
+        })
 
 
 @csrf_exempt
