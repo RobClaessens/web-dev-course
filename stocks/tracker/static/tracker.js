@@ -36,7 +36,6 @@ function load_stocks() {
                     height: "100%",
                     data: stocks,
                     layout: "fitData",
-                    // TODO: Include currency in hidden column, once added to Stock model (instead of transaction)
                     columns: [
                         {title: "Name", field: "name", width: 150},
                         {title: "Symbol", field: "symbol", width: 100},
@@ -53,7 +52,6 @@ function load_stocks() {
                 height: "100%",
                 data: stocks,
                 layout: "fitData",
-                // TODO: Include currency in hidden column, once added to Stock model (instead of transaction)
                 columns: [
                     {title: "Name", field: "name", width: 150},
                     {title: "Symbol", field: "symbol", width: 150},
@@ -120,7 +118,6 @@ function load_portfolio() {
                 {title: "Symbol", field: "symbol", width: 150},
                 {title: "Exchange", field: "exchange", width: 150},
                 {title: "ISIN", field: "ISIN", width: 150},
-                {title: "Currency", field: "currency", visible: false},
                 {title: "Amount", field: "amount", width: 150},
                 {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
                 {title: "Realized price", field: "realized_price", width: 150, formatter: currencyFormatter},
