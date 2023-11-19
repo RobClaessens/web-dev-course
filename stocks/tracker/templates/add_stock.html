@@ -50,7 +50,11 @@
                 <input id="new-currency" class="form-control form-control-sm" type="hidden" name="new_currency" placeholder="New currency">
             </div>
             <div class="form-group">
-                <input id="watch" type="checkbox" name="watch">
+                {% if 'watchlist' in next %}
+                    <input id="watch" type="checkbox" name="watch" checked>
+                {% else %}
+                    <input id="watch" type="checkbox" name="watch">
+                {% endif %}
                 <label class="col-form-label-sm" for="watch">Add to watchlist</label>
             </div>
             <div class="form-group">
