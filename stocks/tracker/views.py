@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from urllib.parse import urlparse
 
 from .models import User, Portfolio, Stock, StockWatch
 
@@ -97,6 +98,7 @@ def add_stock(request):
         ISIN = request.POST["ISIN"]
         currency = request.POST["currency"]
         watch = request.POST.get("watch")
+        next = request.POST.get("next")
 
         # Get possible new exchange and currency
         if exchange == 'other':
@@ -130,12 +132,13 @@ def add_stock(request):
                 "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
             })
 
-        return HttpResponseRedirect(reverse("index"))
+        return HttpResponseRedirect(next or reverse("index"))
 
     else:
         return render(request, "add_stock.html", {
             "exchanges": sorted(set([s.exchange for s in Stock.objects.all()])),
             "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
+            "next": urlparse(request.META.get('HTTP_REFERER', '')).path,
         })
 
 
