@@ -13,6 +13,13 @@ urlpatterns = [
     path("portfolios", views.portfolios, name="portfolios"),
     path("portfolios/<int:portfolio_id>", views.portfolios, name="portfolios"),
 
+    # Addition views
+    path("add_stock", views.add_stock, name="add_stock"),
+    path("add_watch", views.add_stock, name="add_watch"),
+    path("add_portfolio", views.add_stock, name="add_portfolio"),
+    path("add_transaction/<int:portfolio_id>", views.add_stock, name="add_transaction"),
+    path("add_dividend/<int:portfolio_id>", views.add_stock, name="add_dividend"),
+
     # API endpoints
     path("stocks", views.stocks, name="stocks"),
     path("watched_stocks", views.watched_stocks, name="watched_stocks"),

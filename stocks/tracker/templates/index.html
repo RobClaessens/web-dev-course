@@ -1,6 +1,22 @@
 {% extends "layout.html" %}
 {% load static %}
 
+{% block sidebar %}
+
+    <nav class="sidebar-expanded navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{% url 'index' %}">Stocks</a>
+
+        <div>
+            <ul class="navbar-nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'add_stock' %}">Add stock</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+{% endblock %}
+
 {% block body %}
     <div id="stocks"></div>
     <script data-user-id="{{ user_id }}" data-watchlist="{{ watchlist }}">

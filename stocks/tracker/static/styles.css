@@ -18,8 +18,40 @@
     display: block;
 }
 
-#stocks, #portfolio {
+.nav-item-nested {
+    margin-left: 25px;
+    list-style-type: circle;
+}
+
+.nav-link-nested {
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+.error-label {
+    margin-bottom: 0;
+}
+
+.error-message {
+    color: red;
+    border-color: black;
+}
+
+#stocks, #portfolio, #add-form {
     margin: 20px;
+}
+
+#add-form {
+    width: 300px;
+}
+
+#add-form-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+#add-form-buttons .btn-primary {
+    width: 48%;
 }
 
 .eur:before {

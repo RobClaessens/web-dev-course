@@ -86,6 +86,59 @@ def register(request):
         return render(request, "register.html")
 
 
+@login_required
+def add_stock(request):
+    if request.method == "POST":
+
+        # Get required arguments
+        name = request.POST["name"]
+        symbol = request.POST["symbol"]
+        exchange = request.POST["exchange"]
+        ISIN = request.POST["ISIN"]
+        currency = request.POST["currency"]
+        watch = request.POST.get("watch")
+
+        # Get possible new exchange and currency
+        if exchange == 'other':
+            exchange = request.POST["new_exchange"]
+        if currency == 'other':
+            currency = request.POST["new_currency"]
+
+        # Attempt to add new stock
+        try:
+
+            # Create stock and save
+            stock = Stock(name=name, symbol=symbol, exchange=exchange, ISIN=ISIN, currency=currency)
+            stock.save()
+
+            # Possibly add watch
+            if watch:
+                watch = StockWatch(user=request.user, stock=stock)
+                watch.save()
+
+        except Error as e:
+            if hasattr(e, 'message'):
+                message = e.message
+            elif hasattr(e, 'args'):
+                message = e.args[0]
+            else:
+                message = "Unknown error while adding stock"
+
+            return render(request, "add_stock.html", {
+                "message": message,
+                "exchanges": sorted(set([s.exchange for s in Stock.objects.all()])),
+                "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
+            })
+
+        return HttpResponseRedirect(reverse("index"))
+
+    else:
+        return render(request, "add_stock.html", {
+            "exchanges": sorted(set([s.exchange for s in Stock.objects.all()])),
+            "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
+        })
+
+
 def stocks(request):
 
     # Return stock contents

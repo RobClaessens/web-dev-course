@@ -124,7 +124,7 @@ function load_portfolio() {
                 {title: "Amount", field: "amount", width: 150},
                 {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
                 {title: "Realized price", field: "realized_price", width: 150, formatter: currencyFormatter},
-                // TODO: Implement summation with currency conversion, including addition of classes
+                // TODO: Implement summation with currency conversion (exchangerates API?), including addition of classes
                 {title: "Unrealized PnL", field: "unrealized_pnl", width: 150, formatter: pnlFormatter, bottomCalc: "sum"},
             ],
         });
@@ -134,8 +134,11 @@ function load_portfolio() {
 
 // TODO: Move to a (tabulator) utils file
 function currencyFormatter(cell, formatterParams, onRendered) {
+    // Add class based on currency
     if (cell.getData().currency) { cell.getElement().classList.add(cell.getData().currency.toLowerCase()); }
-    return cell.getValue();
+
+    // Return value rounded to two decimals
+    return parseFloat(cell.getValue()).toFixed(2);
 }
 
 function pnlFormatter(cell, formatterParams, onRendered) {
