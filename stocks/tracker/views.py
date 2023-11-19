@@ -178,6 +178,26 @@ def add_portfolio(request):
         return render(request, "add_portfolio.html")
 
 
+@csrf_exempt
+@login_required
+def toggle_watch(request, stock_id):
+    if request.method == "PUT":
+
+        # Try to retrieve existing stock watch, then delete
+        try:
+            watch = StockWatch.objects.get(user=request.user, stock=Stock.objects.get(pk=stock_id))
+            watch.delete()
+            return HttpResponse(status=200)
+        # Otherwise, create watch
+        except StockWatch.DoesNotExist:
+            watch = StockWatch(user=request.user, stock=Stock.objects.get(pk=stock_id))
+            watch.save()
+            return HttpResponse(status=201)
+
+    else:
+        return JsonResponse({"error": "PUT request required."}, status=400)
+
+
 def stocks(request):
 
     # Return stock contents

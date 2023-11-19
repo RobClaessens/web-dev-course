@@ -42,7 +42,8 @@ function load_stocks() {
                         {title: "Exchange", field: "exchange", width: 100},
                         {title: "ISIN", field: "ISIN", width: 150},
                         {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
-                        {title: "Watchlist", field: "watched", formatter: "tickCross", width: 100},
+                        {title: "Watch", field: "watched", formatter: "tickCross", hozAlign: "center",
+                            cellClick: function (e, cell) { toggleStockWatch(cell) }, width: 80},
                     ],
                 });
             });
@@ -90,7 +91,8 @@ function load_watched_stocks() {
                 {title: "Exchange", field: "exchange", width: 150},
                 {title: "ISIN", field: "ISIN", width: 150},
                 {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
-                {title: "Watchlist", field: "watched", formatter: "tickCross", width: 150},
+                {title: "Watch", field: "watched", formatter: "tickCross", hozAlign: "center",
+                    cellClick: function (e, cell) { toggleStockWatch(cell) }, width: 80},
             ],
         });
     });
@@ -151,4 +153,26 @@ function pnlFormatter(cell, formatterParams, onRendered) {
     }
 
     return currencyFormatter(cell, formatterParams, onRendered);
+}
+
+
+function toggleStockWatch(cell) {
+
+    // Get stock ID
+    const stockId = cell.getRow().getData().id;
+
+    // Get watched status
+    const watched = cell.getRow().getData().watched;
+
+    // Toggle watched status
+    fetch(`/toggle_watch/${stockId}`, {
+        method: 'PUT',
+    })
+    .then(result => {
+        // Update watched status in row
+        // TODO: Optionally update table when watch is removed from watchlist (required in assignment to update by JS?)
+        if (result.status === 200 || result.status === 201) {
+            cell.getRow().update({watched: !watched});
+        }
+    });
 }
