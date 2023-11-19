@@ -38,6 +38,7 @@ class Stock(models.Model):
     symbol = models.CharField(max_length=6)
     exchange = models.CharField(max_length=6)
     ISIN = models.CharField(max_length=12, unique=True)
+    currency = models.CharField(max_length=3, default='EUR')
 
     # Fields to cache Polygon API response
     ms_symbol = models.CharField(max_length=32, null=True, blank=True)
@@ -53,8 +54,10 @@ class Stock(models.Model):
             url = f"http://api.marketstack.com/v1/tickers?access_key={api_key}&exchange={self.exchange}&search={self.symbol}"
             response = requests.get(url)
             data = response.json()
+            if data.get('error'):
+                return
             # TODO: Set boolean eod?
-            if len(data.get('data')) == 1:
+            elif data.get('data') and len(data.get('data')) == 1:
                 self.ms_symbol = data.get('data')[0]['symbol']
                 self.save()
 
@@ -66,7 +69,9 @@ class Stock(models.Model):
             url = f"http://api.marketstack.com/v1/tickers/{self._update_ms_symbol(api_key)}/eod/latest?access_key={api_key}"
             response = requests.get(url)
             data = response.json()
-            if data.get('close'):
+            if data.get('error'):
+                return
+            elif data.get('close'):
                 self.ms_price = data.get('close')
                 self.ms_update = datetime.date.today()
                 self.save()
@@ -80,7 +85,7 @@ class Stock(models.Model):
             "symbol": self.symbol,
             "exchange": self.exchange,
             "ISIN": self.ISIN,
-            # TODO: Include currency
+            "currency": self.currency,
             "price": self.ms_price,
         }
 

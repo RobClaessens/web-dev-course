@@ -144,8 +144,6 @@ def portfolio(request, portfolio_id):
             if stock_id not in portfolio_dict:
                 portfolio_dict[stock_id] = {
                     **stock_dict,
-                    # TODO: Include currency in Stock model?
-                    'currency': transaction.currency,
                     'amount': 0,
                     'total_cost': 0,
                     'total_price': 0,
