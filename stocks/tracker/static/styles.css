@@ -55,13 +55,22 @@
     width: 300px;
 }
 
-.add-form-buttons, .form-group-currency {
+.add-form-buttons, .form-group-currency, .form-group-radio {
     display: flex;
     justify-content: space-between;
 }
 
-.add-form-buttons .btn-primary, .form-group-currency select, .form-group-currency input {
+.add-form-buttons .btn-primary, .form-group-currency select, .form-group-currency input, .form-group-radio label {
     width: 48%;
+}
+
+.form-group-radio input[type="radio"] {
+    display: none;
+}
+
+.form-group-radio input[type="radio"]:checked + label {
+    background-color: #0069d9;
+    border-color: #0062cc;
 }
 
 .eur:before {
