@@ -18,9 +18,14 @@
     display: block;
 }
 
-.nav-item-nested {
+.nav-item-open {
     margin-left: 25px;
-    list-style-type: circle;
+    list-style-type: disclosure-open;
+}
+
+.nav-item-closed {
+    margin-left: 25px;
+    list-style-type: disclosure-closed;
 }
 
 .nav-link-nested {
@@ -29,6 +34,7 @@
 }
 
 .nav-item-add {
+    margin-left: 10px;
     font-style: italic;
 }
 
