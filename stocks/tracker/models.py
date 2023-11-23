@@ -119,12 +119,12 @@ class StockTransaction(Transaction):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     amount = models.DecimalField(max_digits=6, decimal_places=2)
-    currency = models.CharField(max_length=3, default='EUR')
+    costs_currency = models.CharField(max_length=3, default='EUR')
     costs = models.DecimalField(max_digits=3, decimal_places=2)
 
     def __str__(self):
         return f"{self.__class__.__name__} {self.stock.name} ({self.stock.symbol}) - " \
-               f"{self.amount} shares @ {self.currency}{self.price} on {self.date}"
+               f"{self.amount} shares @ {self.stock.currency}{self.price} on {self.date}"
 
 
 class FiatTransaction(Transaction):

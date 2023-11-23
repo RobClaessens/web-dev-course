@@ -203,8 +203,8 @@ def add_transaction(request, portfolio_id):
                                            stock=Stock.objects.get(pk=stock_id),
                                            amount=amount,
                                            price=price,
-                                           currency=Stock.objects.get(pk=stock_id).currency,
-                                           costs=costs)
+                                           costs=costs,
+                                           costs_currency=costs_currency)
             transaction.save()
 
             return HttpResponseRedirect(f"/portfolios/{portfolio_id}")
