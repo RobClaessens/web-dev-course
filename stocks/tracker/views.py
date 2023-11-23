@@ -320,6 +320,9 @@ def portfolio(request, portfolio_id):
             if transaction.amount > 0:
                 portfolio_dict[stock_id]['total_price'] += transaction.amount * transaction.price
 
+        # Remove stocks with zero amount
+        [portfolio_dict.pop(k) for k in list(portfolio_dict.keys()) if portfolio_dict[k]['amount'] == 0]
+
         # Calculate realized price and unrealized PnL
         for stock_id in portfolio_dict:
             portfolio_dict[stock_id]['realized_price'] = portfolio_dict[stock_id]['total_price'] / portfolio_dict[stock_id]['amount']
