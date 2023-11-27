@@ -16,6 +16,7 @@ class Portfolio(models.Model):
     """Model representing a stock portfolio."""
     name = models.CharField(max_length=32)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolios')
+    currency = models.CharField(max_length=3, default='EUR')
 
     @property
     def transactions(self):
@@ -119,7 +120,6 @@ class StockTransaction(Transaction):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     amount = models.DecimalField(max_digits=6, decimal_places=2)
-    costs_currency = models.CharField(max_length=3, default='EUR')
     costs = models.DecimalField(max_digits=3, decimal_places=2)
 
     def __str__(self):
@@ -130,11 +130,10 @@ class StockTransaction(Transaction):
 class FiatTransaction(Transaction):
     """Model representing a fiat transaction."""
     amount = models.DecimalField(max_digits=6, decimal_places=2)
-    currency = models.CharField(max_length=3, default='EUR')
     costs = models.DecimalField(max_digits=3, decimal_places=2)
 
     def __str__(self):
-        return f"{self.__class__.__name__} {self.currency}{self.amount} on {self.date}"
+        return f"{self.__class__.__name__} {self.portfolio.currency}{self.amount} on {self.date}"
 
 
 class StockDividend(StockTransaction):
