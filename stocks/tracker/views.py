@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.db import Error, IntegrityError
+from django.db import Error, IntegrityError, NotSupportedError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -185,26 +185,46 @@ def add_transaction(request, portfolio_id):
     if request.method == "POST":
 
         # Get required arguments
-        stock_id = request.POST["stock_id"]
         transaction_type = request.POST["transaction_type"]
-        amount = request.POST["amount"]
-        price = request.POST["price"]
-        # price_currency = request.POST["price_currency"]   # Basically not needed, defaults to stock currency
-        costs = request.POST["costs"]
-        costs_currency = request.POST["costs_currency"]
+        transaction_method = request.POST["transaction_method"]
 
         # Attempt to add new transaction
         try:
 
-            # TODO: Implement all transaction types
-            # TODO: Update model to allow different cost currencies
+            # Get generic arguments
+            date = request.POST["date"]
+            portfolio = Portfolio.objects.get(pk=portfolio_id)
+            amount = request.POST["amount"]
+            costs = request.POST["costs"]
+
             # Create transaction and save
-            transaction = StockTransaction(portfolio=Portfolio.objects.get(pk=portfolio_id),
-                                           stock=Stock.objects.get(pk=stock_id),
-                                           amount=amount,
-                                           price=price,
-                                           costs=costs,
-                                           costs_currency=costs_currency)
+            match transaction_type:
+                case "StockTransaction":
+
+                    # Get specific arguments
+                    stock = Stock.objects.get(pk=request.POST["stock"])
+                    price = request.POST["price"]
+                    buy = transaction_method == "buy"
+
+                    transaction = StockTransaction(date=date,
+                                                   portfolio=portfolio,
+                                                   stock=stock,
+                                                   amount=amount if buy else f"-{amount}",
+                                                   price=price,
+                                                   costs=costs)
+
+                case "FiatTransaction":
+
+                    # Get specific arguments
+                    deposit = transaction_method == "deposit"
+
+                    transaction = FiatTransaction(date=date,
+                                                  portfolio=portfolio,
+                                                  amount=amount if deposit else f"-{amount}",
+                                                  costs=costs)
+                case _:
+                    raise NotSupportedError(f"Unknown transaction type {transaction_type}. Transaction not added.")
+
             transaction.save()
 
             return HttpResponseRedirect(f"/portfolios/{portfolio_id}")

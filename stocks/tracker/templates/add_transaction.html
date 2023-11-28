@@ -24,7 +24,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <select id="stock" class="form-control form-control-sm" required name="stock_id" onchange="setCurrency(this)">
+                <select id="stock" class="form-control form-control-sm" required name="stock" onchange="setCurrency(this)">
                     <ul>
                         <option value="">Select stock</option>
                         {% for stock in stocks %}
@@ -34,37 +34,32 @@
                 </select>
             </div>
             <div class="form-group form-group-radio">
-                <input id="buy" required type="radio" name="buy" value="buy" checked>
-                <label id="buy-label" class="btn btn-primary" for="buy" onclick="toggleStockTransaction()">Buy</label>
-                <input id="sell" required type="radio" name="buy" value="sell">
-                <label id="sell-label" class="btn btn-primary" for="sell" onclick="toggleStockTransaction()">Sell</label>
-                <input id="deposit" required type="radio" name="deposit" value="deposit">
-                <label id="deposit-label" class="btn btn-primary" for="deposit" hidden onclick="toggleFiatTransaction()">Deposit</label>
-                <input id="withdrawal" required type="radio" name="deposit" value="withdrawal">
-                <label id="withdrawal-label" class="btn btn-primary" for="withdrawal" hidden onclick="toggleFiatTransaction()">Withdrawal</label>
+                <input id="buy" type="radio" name="transaction_method" value="buy" checked>
+                <label id="buy-label" class="btn btn-primary" for="buy">Buy</label>
+                <input id="sell" type="radio" name="transaction_method" value="sell">
+                <label id="sell-label" class="btn btn-primary" for="sell">Sell</label>
+                <input id="deposit" type="radio" name="transaction_method" value="deposit">
+                <label id="deposit-label" class="btn btn-primary" for="deposit" hidden>Deposit</label>
+                <input id="withdrawal" type="radio" name="transaction_method" value="withdrawal">
+                <label id="withdrawal-label" class="btn btn-primary" for="withdrawal" hidden>Withdrawal</label>
             </div>
             <div class="form-group">
                 <input class="form-control form-control-sm" required type="number" min="0" step="0.01" name="amount" placeholder="Amount">
             </div>
-            <div id="price" class="form-group form-group-currency">
+            <div id="price-form" class="form-group form-group-currency">
                 <input id="price-currency"  class="form-control form-control-sm" required type="text" name="price_currency" value="Currency" disabled>
-                <input class="form-control form-control-sm" required type="number" min="0" step="0.01" name="price" placeholder="Price">
+                <input id="price" class="form-control form-control-sm" required type="number" min="0" step="0.01" name="price" placeholder="Price">
             </div>
             <div class="form-group form-group-currency">
-                <select id="costs-currency" class="form-control form-control-sm" required name="costs_currency">
-                    <ul>
-                        <option value="Currency">Currency</option>
-                        {% for currency in currencies %}
-                            <option value="{{ currency }}">{{ currency }}</option>
-                        {% endfor %}
-                    </ul>
-                </select>
+                <input class="form-control form-control-sm" required type="text" name="costs_currency" value="{{ portfolio.currency }}" disabled>
                 <input class="form-control form-control-sm" required type="number" min="0" step="0.01" name="costs" placeholder="Costs">
+            </div>
+            <div class="form-group">
+                <input class="form-control form-control-sm" required type="date" min="2023-01-01" name="date">
             </div>
             <div class="form-group">
                 <input type="hidden" name="previous" value="{{ previous }}">
             </div>
-            <!-- TODO: Implement date picker -->
             <div class="add-form-buttons">
                 <input class="btn btn-primary" type="submit" value="Add">
                 <a class="btn btn-primary" href="{% url 'portfolios' portfolio.id %}">Cancel</a>
@@ -79,56 +74,41 @@
 
         // Get dependent elements
         const stock = document.getElementById("stock");
+        const price_form = document.getElementById("price-form");
         const price = document.getElementById("price");
         const buy = document.getElementById("buy-label");
         const sell = document.getElementById("sell-label");
         const deposit = document.getElementById("deposit-label");
         const withdrawal = document.getElementById("withdrawal-label");
 
-        // Toggle hidden and checked attributes for all radio buttons
+        // Toggle hidden, required and checked attributes for all radio buttons
         if (transaction_type.value === "StockTransaction") {
+            // Hidden
             stock.hidden = false;
-            price.hidden = false;
+            price_form.hidden = false;
             buy.hidden = false;
             sell.hidden = false;
             deposit.hidden = true;
             withdrawal.hidden = true;
+            // Required
+            stock.required = true;
+            price.required = true;
+            // Checked, setting one to true will set the others to false
             buy.control.checked = true;
-            sell.control.checked = false;
-            deposit.control.checked = false;
-            withdrawal.control.checked = false;
         } else {
+            // Hidden
             stock.hidden = true;
-            price.hidden = true;
+            price_form.hidden = true;
             buy.hidden = true;
             sell.hidden = true;
             deposit.hidden = false;
             withdrawal.hidden = false;
-            buy.control.checked = false;
-            sell.control.checked = false;
+            // Required
+            stock.required = false;
+            price.required = false;
+            // Checked, setting one to true will set the others to false
             deposit.control.checked = true;
-            withdrawal.control.checked = false;
         }
-    }
-
-    function toggleStockTransaction() {
-        // Get radio buttons
-        const buy = document.getElementById("buy");
-        const sell = document.getElementById("sell");
-
-        // Toggle buttons
-        buy.checked = !buy.checked;
-        sell.checked = !sell.checked;
-    }
-
-    function toggleFiatTransaction() {
-        // Get radio buttons
-        const deposit = document.getElementById("deposit");
-        const withdrawal = document.getElementById("withdrawal");
-
-        // Toggle buttons
-        deposit.checked = !deposit.checked;
-        withdrawal.checked = !withdrawal.checked;
     }
 
     function setCurrency(element) {
@@ -138,11 +118,9 @@
 
         // Get currency elements
         const price_currency = document.getElementById("price-currency");
-        const costs_currency = document.getElementById("costs-currency");
 
         // Update currency dropdowns based on stock currency
         price_currency.value = currency ? currency : "Currency";
-        costs_currency.value = currency ? currency : "Currency";
     }
     </script>
 

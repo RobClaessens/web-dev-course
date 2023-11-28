@@ -62,6 +62,7 @@
 
 .add-form-buttons .btn-primary, .form-group-currency select, .form-group-currency input, .form-group-radio label {
     width: 48%;
+    margin-bottom: 0;
 }
 
 .form-group-radio input[type="radio"] {
