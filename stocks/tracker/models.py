@@ -123,8 +123,14 @@ class StockTransaction(Transaction):
     costs = models.DecimalField(max_digits=3, decimal_places=2)
 
     def __str__(self):
-        return f"{self.__class__.__name__} {self.stock.name} ({self.stock.symbol}) - " \
-               f"{self.amount} shares @ {self.stock.currency}{self.price} on {self.date}"
+        if self.amount > 0:
+            return f"{self.__class__.__name__} {self.stock.name} ({self.stock.symbol}) - " \
+                   f"Buy {self.amount} shares @ {self.stock.currency}{self.price} on {self.date} - " \
+                   f"{self.portfolio.name} of {self.portfolio.user.username}"
+        else:
+            return f"{self.__class__.__name__} {self.stock.name} ({self.stock.symbol}) - " \
+                   f"Sell {-self.amount} shares @ {self.stock.currency}{self.price} on {self.date} - " \
+                   f"{self.portfolio.name} of {self.portfolio.user.username}"
 
 
 class FiatTransaction(Transaction):
@@ -133,7 +139,12 @@ class FiatTransaction(Transaction):
     costs = models.DecimalField(max_digits=3, decimal_places=2)
 
     def __str__(self):
-        return f"{self.__class__.__name__} {self.portfolio.currency}{self.amount} on {self.date}"
+        if self.amount > 0:
+            return f"{self.__class__.__name__} - Deposit {self.portfolio.currency}{self.amount} on {self.date} - " \
+                   f"{self.portfolio.name} of {self.portfolio.user.username}"
+        else:
+            return f"{self.__class__.__name__} - Withdraw {self.portfolio.currency}{-self.amount} on {self.date} - " \
+                   f"{self.portfolio.name} of {self.portfolio.user.username}"
 
 
 class StockDividend(StockTransaction):
