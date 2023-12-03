@@ -3,11 +3,12 @@
 
 {% block sidebar %}
 
-    <!-- TODO: Properly set id of sidebar and allow to collapse / expand -->
-    <nav class="sidebar-expanded navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{% url 'portfolios' %}">Portfolios</a>
+    <nav class="sidebar navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{% url 'portfolios' %}"><img src="{% static 'images/portfolio.png' %}"></a>
 
         <div>
+            <!-- TODO: Make sidebar initially unfolded when portfolio is selected -->
+            <!-- Either use some event setting (e.g. setting focus) or use a CSS class to have it unfolded? -->
             <ul class="navbar-nav flex-column">
                 {% for portfolio in portfolios %}
                     {% if portfolio_id == portfolio.id %}

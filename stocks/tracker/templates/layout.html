@@ -9,14 +9,34 @@
         <link rel="stylesheet" href="{% static 'styles.css' %}">
         <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
         <script type="text/javascript">
-            // Some JavaScript to make the sidebar fill the screen vertically
+            // Some JavaScript to make the sidebar responsive and foldable
             function setSidebarHeight() {
                 const sidebar = document.querySelector(".sidebar");
                 sidebar.style.height = `${window.innerHeight - sidebar.offsetTop}px`;
             }
-            // Attach function to DOMContentLoaded and resize events
+            function unfoldSidebar() {
+                const sidebar = document.querySelector(".sidebar");
+                sidebar.style.width = sidebar.scrollWidth + 10 + "px";
+                const sidebar_div = document.querySelector(".sidebar div");
+                sidebar_div.style.opacity = "1";
+            }
+            function foldSidebar() {
+                const sidebar = document.querySelector(".sidebar");
+                sidebar.style.width = "";
+                const sidebar_div = document.querySelector(".sidebar div");
+                sidebar_div.style.opacity = "";
+            }
+
+            // Attach height function to DOMContentLoaded and resize events
             document.addEventListener("DOMContentLoaded", setSidebarHeight);
             window.addEventListener("resize", setSidebarHeight);
+
+            // Attach (un)fold functions to mouseover and mouseout events
+            document.addEventListener("DOMContentLoaded", () => {
+                const sidebar = document.querySelector(".sidebar");
+                sidebar.addEventListener("mouseover", unfoldSidebar);
+                sidebar.addEventListener("mouseout", foldSidebar);
+            });
         </script>
     </head>
     <body>
@@ -58,10 +78,8 @@
 
         <div class="body">
 
-            <div class="sidebar">
-                {% block sidebar %}
-                {% endblock %}
-            </div>
+            {% block sidebar %}
+            {% endblock %}
         
             {% block body %}
             {% endblock %}

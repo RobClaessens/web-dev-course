@@ -1,21 +1,22 @@
-.body {
+.body:has(.sidebar) {
     display: flex;
 }
 
 .sidebar {
-    width: fit-content;
-}
-
-.sidebar-expanded {
-    width: 200px;
-    height: 100%;
     display: block;
+    height: 100%;
+    width: 90px;
+    overflow-x: hidden;
+    transition: width 0.5s;
 }
 
-.sidebar-collapsed {
+.sidebar div {
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.navbar-brand img {
     width: 50px;
-    height: 100%;
-    display: block;
 }
 
 .nav-item-open {
@@ -26,6 +27,11 @@
 .nav-item-closed {
     margin-left: 25px;
     list-style-type: disclosure-closed;
+}
+
+.nav-link {
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .nav-link-nested {
