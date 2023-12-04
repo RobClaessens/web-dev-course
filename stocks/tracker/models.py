@@ -115,6 +115,16 @@ class Transaction(models.Model):
         abstract = True
 
 
+class Dividend(Transaction):
+    """Model representing a dividend."""
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, null=True)
+    amount = models.DecimalField(max_digits=6, decimal_places=2, null=True)
+    costs = models.DecimalField(max_digits=3, decimal_places=2, null=True)
+
+    class Meta:
+        abstract = True
+
+
 class StockTransaction(Transaction):
     """Model representing a stock transaction."""
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
@@ -147,11 +157,17 @@ class FiatTransaction(Transaction):
                    f"{self.portfolio.name} of {self.portfolio.user.username}"
 
 
-class StockDividend(StockTransaction):
+class StockDividend(Dividend):
     """Model representing a stock dividend."""
-    pass
+    def __str__(self):
+        return f"{self.__class__.__name__} {self.stock.name} ({self.stock.symbol}) - " \
+               f"{self.amount} shares on {self.date} - " \
+               f"{self.portfolio.name} of {self.portfolio.user.username}"
 
 
-class FiatDividend(FiatTransaction):
+class FiatDividend(Dividend):
     """Model representing a fiat dividend."""
-    pass
+    def __str__(self):
+        return f"{self.__class__.__name__} {self.stock.name} ({self.stock.symbol}) - " \
+               f"{self.portfolio.currency}{self.amount} on {self.date} - " \
+               f"{self.portfolio.name} of {self.portfolio.user.username}"
