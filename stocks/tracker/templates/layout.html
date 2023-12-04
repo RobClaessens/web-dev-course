@@ -16,9 +16,16 @@
             }
             function unfoldSidebar() {
                 const sidebar = document.querySelector(".sidebar");
-                sidebar.style.width = sidebar.scrollWidth + 10 + "px";
+                const computedStyle = window.getComputedStyle(sidebar);
                 const sidebar_div = document.querySelector(".sidebar div");
-                sidebar_div.style.opacity = "1";
+                if (sidebar.classList.contains("unfolded")) {
+                    sidebar.style.width = computedStyle.width;
+                    sidebar_div.style.opacity = "1";
+                    sidebar.classList.remove("unfolded");
+                } else {
+                    sidebar.style.width = sidebar.scrollWidth + parseInt(computedStyle.paddingLeft) + parseInt(computedStyle.paddingRight) + "px";
+                    sidebar_div.style.opacity = "1";
+                }
             }
             function foldSidebar() {
                 const sidebar = document.querySelector(".sidebar");
@@ -34,8 +41,22 @@
             // Attach (un)fold functions to mouseover and mouseout events
             document.addEventListener("DOMContentLoaded", () => {
                 const sidebar = document.querySelector(".sidebar");
-                sidebar.addEventListener("mouseover", unfoldSidebar);
-                sidebar.addEventListener("mouseout", foldSidebar);
+                sidebar.addEventListener("mouseover", function(event) {
+                    const target = event.target;
+                    const relatedTarget = event.relatedTarget;
+                    const targetInSidebar = target === sidebar || sidebar.contains(target);
+                    const relatedTargetInSidebar = relatedTarget === sidebar || sidebar.contains(relatedTarget);
+                    // Only trigger when entering sidebar from outside sidebar, i.e. ignore mouseover events on children
+                    if (!relatedTargetInSidebar && targetInSidebar) { unfoldSidebar(); }
+                });
+                sidebar.addEventListener("mouseout", function(event) {
+                    const target = event.target;
+                    const relatedTarget = event.relatedTarget;
+                    const targetInSidebar = target === sidebar || sidebar.contains(target);
+                    const relatedTargetInSidebar = relatedTarget === sidebar || sidebar.contains(relatedTarget);
+                    // Only trigger when leaving sidebar from inside sidebar, i.e. ignore mouseout events on children
+                    if (!relatedTargetInSidebar && targetInSidebar) { foldSidebar(); }
+                });
             });
         </script>
     </head>

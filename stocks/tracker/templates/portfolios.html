@@ -3,7 +3,11 @@
 
 {% block sidebar %}
 
-    <nav class="sidebar navbar navbar-expand-lg navbar-light bg-light">
+    {% if portfolio_id != "null" %}
+        <nav class="sidebar navbar navbar-expand-lg navbar-light bg-light unfolded">
+    {% else %}
+        <nav class="sidebar navbar navbar-expand-lg navbar-light bg-light">
+    {% endif %}
         <a class="navbar-brand" href="{% url 'portfolios' %}"><img src="{% static 'images/portfolio.png' %}"></a>
 
         <div>

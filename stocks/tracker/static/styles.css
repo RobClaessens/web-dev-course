@@ -5,14 +5,28 @@
 .sidebar {
     display: block;
     height: 100%;
-    width: 90px;
+    width: 70px;
     overflow-x: hidden;
     transition: width 0.5s;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.unfolded {
+    width: fit-content;
 }
 
 .sidebar div {
     opacity: 0;
     transition: opacity 0.5s;
+}
+
+.sidebar.unfolded div {
+    opacity: 1;
+}
+
+.navbar-brand {
+    margin-right: 0;
 }
 
 .navbar-brand img {
