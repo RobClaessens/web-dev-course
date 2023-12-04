@@ -206,6 +206,7 @@ def add_transaction(request, portfolio_id):
                     price = request.POST["price"]
                     buy = transaction_method == "buy"
 
+                    # Create StockTransaction
                     transaction = StockTransaction(date=date,
                                                    portfolio=portfolio,
                                                    stock=stock,
@@ -218,6 +219,7 @@ def add_transaction(request, portfolio_id):
                     # Get specific arguments
                     deposit = transaction_method == "deposit"
 
+                    # Create FiatTransaction
                     transaction = FiatTransaction(date=date,
                                                   portfolio=portfolio,
                                                   amount=amount if deposit else f"-{amount}",
@@ -246,6 +248,72 @@ def add_transaction(request, portfolio_id):
 
     else:
         return render(request, "add_transaction.html", {
+            "portfolio": Portfolio.objects.get(pk=portfolio_id),
+            "stocks": sorted(Stock.objects.all(), key=lambda s: s.name),
+            "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
+        })
+
+
+@login_required
+def add_dividend(request, portfolio_id):
+    if request.method == "POST":
+
+        # Get required arguments
+        dividend_type = request.POST["dividend_type"]
+
+        # Attempt to add new dividend
+        try:
+
+            # Get generic arguments
+            date = request.POST["date"]
+            portfolio = Portfolio.objects.get(pk=portfolio_id)
+            stock = Stock.objects.get(pk=request.POST["stock"])
+            amount = request.POST["amount"]
+            costs = request.POST["costs"]
+
+            # Create dividend and save
+            match dividend_type:
+                case "StockDividend":
+
+                    # Create StockDividend
+                    dividend = StockDividend(date=date,
+                                             portfolio=portfolio,
+                                             stock=stock,
+                                             amount=amount,
+                                             costs=costs)
+
+                case "FiatDividend":
+
+                    # Create FiatDividend
+                    dividend = FiatDividend(date=date,
+                                            portfolio=portfolio,
+                                            stock=stock,
+                                            amount=amount,
+                                            costs=costs)
+                case _:
+                    raise NotSupportedError(f"Unknown dividend type {dividend_type}. Dividend not added.")
+
+            dividend.save()
+
+            return HttpResponseRedirect(f"/portfolios/{portfolio_id}")
+
+        except Error as e:
+            if hasattr(e, 'message'):
+                message = e.message
+            elif hasattr(e, 'args'):
+                message = e.args[0]
+            else:
+                message = "Unknown error while adding dividend"
+
+            return render(request, "add_dividend.html", {
+                "message": message,
+                "portfolio": Portfolio.objects.get(pk=portfolio_id),
+                "stocks": sorted(Stock.objects.all(), key=lambda s: s.name),
+                "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
+            })
+
+    else:
+        return render(request, "add_dividend.html", {
             "portfolio": Portfolio.objects.get(pk=portfolio_id),
             "stocks": sorted(Stock.objects.all(), key=lambda s: s.name),
             "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
@@ -324,6 +392,7 @@ def portfolio(request, portfolio_id):
         portfolio_dict = dict()
 
         # Iterate through stock transactions to setup portfolio
+        # TODO: Include stock and fiat dividends
         for transaction in portfolio.stocktransactions.all():
             stock_dict = transaction.stock.serialize()
             stock_id = stock_dict.get('id')
@@ -347,6 +416,8 @@ def portfolio(request, portfolio_id):
         for stock_id in portfolio_dict:
             portfolio_dict[stock_id]['realized_price'] = portfolio_dict[stock_id]['total_price'] / portfolio_dict[stock_id]['amount']
             portfolio_dict[stock_id]['unrealized_pnl'] = portfolio_dict[stock_id]['amount'] * portfolio_dict[stock_id]['price'] - portfolio_dict[stock_id]['total_price']
+
+        # TODO: Compute metrics (overal gain, absolute, percentage, etc.) Might be in a different div and endpoint!
 
         return JsonResponse([s for s in sorted(portfolio_dict.values(), key=lambda s: s['name'])], safe=False)
 
