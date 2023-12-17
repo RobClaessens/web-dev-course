@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.db import Error, IntegrityError, NotSupportedError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
@@ -85,6 +85,73 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "register.html")
+
+
+@login_required
+def profile(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        email = request.POST["email"]
+
+        # Ensure password matches confirmation
+        password = request.POST["password"]
+        confirmation = request.POST["password_confirmation"]
+        if password != confirmation:
+            return render(request, "profile.html", {
+                "message": "Passwords must match."
+            })
+
+        # Ensure API key matches confirmation
+        ms_api_key = request.POST["ms_api_key"]
+        ms_api_key_confirmation = request.POST["ms_api_key_confirmation"]
+        if ms_api_key != ms_api_key_confirmation:
+            return render(request, "profile.html", {
+                "user": request.user,
+                "message": "API keys must match."
+            })
+
+        # Attempt to update user
+        try:
+
+            # Update user information
+            update = False
+            if username != request.user.username:
+                request.user.username = username
+                update = True
+            if email != request.user.email:
+                request.user.email = email
+                update = True
+            if password:
+                request.user.set_password(password)
+                update_session_auth_hash(request, request.user)
+                update = True
+            if ms_api_key:
+                request.user.ms_api_key = ms_api_key
+                update = True
+
+            # Save updates
+            request.user.save()
+
+            if update:
+                return render(request, "profile.html", {
+                    "user": request.user,
+                    "message": "User information updated successfully."
+                })
+            else:
+                return render(request, "profile.html", {
+                    "user": request.user,
+                })
+
+        # Or return message on error occurrence
+        except IntegrityError:
+            return render(request, "profile.html", {
+                "user": request.user,
+                "message": "Error during updating user information, information not updated."
+            })
+    else:
+        return render(request, "profile.html", {
+            "user": request.user,
+        })
 
 
 @login_required

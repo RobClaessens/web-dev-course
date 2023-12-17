@@ -59,6 +59,10 @@
     font-style: italic;
 }
 
+.message {
+    margin-bottom: 10px;
+}
+
 .error-label {
     margin-bottom: 0;
 }
@@ -68,11 +72,11 @@
     border-color: black;
 }
 
-#stocks, #portfolio, #add-form {
+#stocks, #portfolio, #profile, #add-form {
     margin: 20px;
 }
 
-#add-form {
+#profile, #add-form {
     width: 300px;
 }
 
@@ -81,8 +85,13 @@
     justify-content: space-between;
 }
 
-.add-form-buttons .btn-primary, .form-group-currency select, .form-group-currency input, .form-group-radio label {
+.add-form-buttons .btn-primary, .form-group-currency select, .form-group-currency input, .form-group label {
     width: 48%;
+    margin-bottom: 0;
+}
+
+#profile .btn-primary {
+    width: 100%;
     margin-bottom: 0;
 }
 
