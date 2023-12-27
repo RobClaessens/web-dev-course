@@ -1,3 +1,6 @@
+import { currencyFormatter, pnlFormatter } from './tableutils.js';
+
+
 document.addEventListener('DOMContentLoaded', function() {
     // Load stocks
     if (watchlist) {
@@ -128,31 +131,6 @@ function load_portfolio() {
             ],
         });
     });
-}
-
-
-// TODO: Move to a (tabulator) utils file
-function currencyFormatter(cell, formatterParams, onRendered) {
-    // Add class based on currency
-    if (cell.getData().currency) { cell.getElement().classList.add(cell.getData().currency.toLowerCase()); }
-
-    // Return value rounded to two decimals
-    return parseFloat(cell.getValue()).toFixed(2);
-}
-
-function pnlFormatter(cell, formatterParams, onRendered) {
-
-    // Get value from cell
-    const value = cell.getValue();
-
-    // Add 'profit' or 'loss' class depending on value
-    if (value > 0) {
-        cell.getElement().classList.add('profit');
-    } else if (value < 0) {
-        cell.getElement().classList.add('loss');
-    }
-
-    return currencyFormatter(cell, formatterParams, onRendered);
 }
 
 
