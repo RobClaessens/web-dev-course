@@ -119,6 +119,8 @@ class Dividend(Transaction):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE, null=True)
     amount = models.DecimalField(max_digits=6, decimal_places=2, null=True)
     costs = models.DecimalField(max_digits=3, decimal_places=2, null=True)
+    # Also store costs in portfolio currency, as this can differ from the stock currency
+    costs_in_portfolio_currency = models.DecimalField(max_digits=3, decimal_places=2, null=True)
 
     class Meta:
         abstract = True
@@ -130,6 +132,9 @@ class StockTransaction(Transaction):
     price = models.DecimalField(max_digits=6, decimal_places=2)
     amount = models.DecimalField(max_digits=6, decimal_places=2)
     costs = models.DecimalField(max_digits=3, decimal_places=2)
+    # Also store price and costs in portfolio currency, as this can differ from the stock currency
+    price_in_portfolio_currency = models.DecimalField(max_digits=6, decimal_places=2, null=True)
+    costs_in_portfolio_currency = models.DecimalField(max_digits=3, decimal_places=2, null=True)
 
     def __str__(self):
         if self.amount > 0:
