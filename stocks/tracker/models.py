@@ -7,6 +7,7 @@ import requests
 class User(AbstractUser):
     created = models.DateField(auto_now_add=True)
     ms_api_key = models.CharField(max_length=32, null=True, blank=True)
+    er_api_key = models.CharField(max_length=32, null=True, blank=True)
 
     def __str__(self):
         return f"User '{self.username}'"
