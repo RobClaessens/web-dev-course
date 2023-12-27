@@ -1,6 +1,3 @@
-import { currencyFormatter, pnlFormatter } from './tableutils.js';
-
-
 document.addEventListener('DOMContentLoaded', function() {
     // Load stocks
     if (watchlist) {
@@ -111,23 +108,31 @@ function load_portfolio() {
     // Load portfolio
     fetch(`/portfolio/${portfolioId}`)
     .then(response => response.json())
-    .then(portfolio_stocks => {
+    .then(portfolio => {
 
         // Create Tabulator on DOM element
         const table = new Tabulator("#portfolio", {
             height: "100%",
-            data: portfolio_stocks,
+            data: portfolio['stocks'],
             layout: "fitData",
             columns: [
                 {title: "Name", field: "name", width: 150},
-                {title: "Symbol", field: "symbol", width: 150},
-                {title: "Exchange", field: "exchange", width: 150},
+                {title: "Symbol", field: "symbol", width: 100},
+                {title: "Exchange", field: "exchange", width: 100},
                 {title: "ISIN", field: "ISIN", width: 150},
-                {title: "Amount", field: "amount", width: 150},
-                {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
-                {title: "Realized price", field: "realized_price", width: 150, formatter: currencyFormatter},
-                // TODO: Implement summation with currency conversion (exchangerates API?), including addition of classes
-                {title: "Unrealized PnL", field: "unrealized_pnl", width: 150, formatter: pnlFormatter, bottomCalc: "sum"},
+                {title: "Amount", field: "amount", width: 100},
+                {title: "Price", field: "price", width: 100, formatter: currencyFormatter},
+                {title: "Real. price", field: "realized_price", width: 120, formatter: currencyFormatter},
+                {title: "Costs", field: "total_cost", width: 100, formatter: currencyFormatter,
+                    bottomCalc: () => { return portfolio['metrics']['total_cost'] },
+                    bottomCalcFormatter: pnlFormatter,
+                    bottomCalcFormatterParams: { currency: portfolio['metrics']['currency'] }},
+                {title: "Unr. PnL", field: "unrealized_pnl", width: 120, formatter: pnlFormatter,
+                    bottomCalc: () => { return portfolio['metrics']['unrealized_pnl'] },
+                    bottomCalcFormatter: pnlFormatter,
+                    bottomCalcFormatterParams: { currency: portfolio['metrics']['currency'] }},
+                {title: "Unr. PnL %", field: "unrealized_pnl_percentage", width: 120, formatter: percentageFormatter},
+                // {title: "Rea. PnL", field: "realized_pnl", width: 100, formatter: pnlFormatter,
             ],
         });
     });

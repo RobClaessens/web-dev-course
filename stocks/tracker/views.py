@@ -473,38 +473,67 @@ def portfolio(request, portfolio_id):
     # Try to retrieve portfolio price
     if request.method == "GET":
 
-        # Setup portfolio dictionary
-        portfolio_dict = dict()
+        # Setup stocks and metrics dictionaries
+        stocks_dict = dict()
+        metric_dict = dict()
 
         # Iterate through stock transactions to setup portfolio
         # TODO: Include stock and fiat dividends
         for transaction in portfolio.stocktransactions.all():
             stock_dict = transaction.stock.serialize()
             stock_id = stock_dict.get('id')
-            if stock_id not in portfolio_dict:
-                portfolio_dict[stock_id] = {
+            if stock_id not in stocks_dict:
+                stocks_dict[stock_id] = {
                     **stock_dict,
+                    'price_in_portfolio_currency': stock_dict['price'] / get_exchange_rate(portfolio.currency, stock_dict['currency']),
                     'amount': 0,
-                    'total_cost': 0,
                     'total_price': 0,
-                    'realized_price': 0,
+                    'total_cost': 0,
+                    'total_price_in_portfolio_currency': 0,
+                    'total_cost_in_portfolio_currency': 0,
                 }
-            portfolio_dict[stock_id]['amount'] += transaction.amount
-            portfolio_dict[stock_id]['total_cost'] += transaction.costs
+
+            stocks_dict[stock_id]['amount'] += float(transaction.amount)
+            stocks_dict[stock_id]['total_cost'] += float(transaction.costs)
+            stocks_dict[stock_id]['total_cost_in_portfolio_currency'] += float(transaction.costs_in_portfolio_currency or transaction.costs)
+            # TODO: 'if' not required if only dealing with stocktransaction!
             if transaction.amount > 0:
-                portfolio_dict[stock_id]['total_price'] += transaction.amount * transaction.price
+                stocks_dict[stock_id]['total_price'] += float(transaction.amount * transaction.price)
+                stocks_dict[stock_id]['total_price_in_portfolio_currency'] += float(transaction.amount * (transaction.price_in_portfolio_currency or transaction.price))
 
         # Remove stocks with zero amount
-        [portfolio_dict.pop(k) for k in list(portfolio_dict.keys()) if portfolio_dict[k]['amount'] == 0]
+        [stocks_dict.pop(k) for k in list(stocks_dict.keys()) if stocks_dict[k]['amount'] == 0]
 
         # Calculate realized price and unrealized PnL
-        for stock_id in portfolio_dict:
-            portfolio_dict[stock_id]['realized_price'] = portfolio_dict[stock_id]['total_price'] / portfolio_dict[stock_id]['amount']
-            portfolio_dict[stock_id]['unrealized_pnl'] = portfolio_dict[stock_id]['amount'] * portfolio_dict[stock_id]['price'] - portfolio_dict[stock_id]['total_price']
+        for stock_id in stocks_dict:
+            stocks_dict[stock_id]['realized_price'] = stocks_dict[stock_id]['total_price'] / stocks_dict[stock_id]['amount']
+            stocks_dict[stock_id]['unrealized_pnl'] = (
+                    stocks_dict[stock_id]['amount'] * stocks_dict[stock_id]['price'] -
+                    stocks_dict[stock_id]['total_price'] -
+                    stocks_dict[stock_id]['total_cost'])
+            stocks_dict[stock_id]['unrealized_pnl_percentage'] = (
+                    stocks_dict[stock_id]['unrealized_pnl'] / stocks_dict[stock_id]['total_price'] * 100) \
+                if stocks_dict[stock_id]['total_price'] else 0
+            stocks_dict[stock_id]['unrealized_pnl_in_portfolio_currency'] = (
+                    stocks_dict[stock_id]['amount'] * stocks_dict[stock_id]['price_in_portfolio_currency'] -
+                    stocks_dict[stock_id]['total_price_in_portfolio_currency'] -
+                    stocks_dict[stock_id]['total_cost_in_portfolio_currency'])
 
-        # TODO: Compute metrics (overal gain, absolute, percentage, etc.) Might be in a different div and endpoint!
+        # Compute metrics
+        # TODO: Currently excludes stocks that have been sold, split these (?), i.e. with and without sold stocks
+        metric_dict['currency'] = portfolio.currency
+        metric_dict['total_price'] = sum([stocks_dict[k]['total_price_in_portfolio_currency'] for k in stocks_dict])
+        metric_dict['total_cost'] = sum([stocks_dict[k]['total_cost_in_portfolio_currency'] for k in stocks_dict])
+        metric_dict['total_cost_percentage'] = metric_dict['total_cost'] / metric_dict['total_price'] * 100 if metric_dict['total_price'] else 0
+        metric_dict['unrealized_pnl'] = sum([stocks_dict[k]['unrealized_pnl_in_portfolio_currency'] for k in stocks_dict])
+        metric_dict['unrealized_pnl_percentage'] = metric_dict['unrealized_pnl'] / metric_dict['total_price'] * 100 if metric_dict['total_price'] else 0
 
-        return JsonResponse([s for s in sorted(portfolio_dict.values(), key=lambda s: s['name'])], safe=False)
+        # TODO: Compute metrics (overall gain, absolute, percentage, etc.) Might be in a different div and endpoint!
+
+        return JsonResponse({
+            'stocks': [s for s in sorted(stocks_dict.values(), key=lambda s: s['name'])],
+            'metrics': metric_dict
+        })
 
     # Provide error message if not GET request
     else:

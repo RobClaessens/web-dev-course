@@ -8,6 +8,23 @@ function currencyFormatter(cell, formatterParams, onRendered) {
 }
 
 
+function percentageFormatter(cell, formatterParams, onRendered) {
+
+    // Get value from cell
+    const value = cell.getValue();
+
+    // Add 'profit' or 'loss' class depending on value
+    if (value > 0) {
+        cell.getElement().classList.add('profit');
+    } else if (value < 0) {
+        cell.getElement().classList.add('loss');
+    }
+
+    // Return value rounded to two decimals
+    return parseFloat(cell.getValue()).toFixed(2) + '%';
+}
+
+
 function pnlFormatter(cell, formatterParams, onRendered) {
 
     // Get value from cell
@@ -20,9 +37,9 @@ function pnlFormatter(cell, formatterParams, onRendered) {
         cell.getElement().classList.add('loss');
     }
 
+    // Add class based on currency, this is passed explicitly for the total PnL
+    if (formatterParams.currency) { cell.getElement().classList.add(formatterParams.currency.toLowerCase()); }
+
     // Also call currencyFormatter to format number and add currency
     return currencyFormatter(cell, formatterParams, onRendered);
 }
-
-
-export { currencyFormatter, pnlFormatter };

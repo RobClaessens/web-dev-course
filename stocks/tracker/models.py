@@ -86,7 +86,7 @@ class Stock(models.Model):
             "exchange": self.exchange,
             "ISIN": self.ISIN,
             "currency": self.currency,
-            "price": self.ms_price,
+            "price": float(self.ms_price),
         }
 
     def __str__(self):
