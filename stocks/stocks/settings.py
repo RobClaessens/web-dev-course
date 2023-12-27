@@ -81,6 +81,16 @@ DATABASES = {
     }
 }
 
+# TODO: Consider a cache that persists data between runs, to limit the number of API calls
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "exchange_rates_cache",
+    }
+}
+
+OPEN_EXCHANGE_RATES_APP_ID = "df68c7387c4d49f5ab21a44762d4bd6f"
+
 AUTH_USER_MODEL = 'tracker.User'
 
 # Password validation

@@ -25,4 +25,5 @@ urlpatterns = [
     path("stocks", views.stocks, name="stocks"),
     path("watched_stocks", views.watched_stocks, name="watched_stocks"),
     path("portfolio/<int:portfolio_id>", views.portfolio, name="portfolio"),
+    path("exchange_rate/<str:base_currency>/<str:target_currency>", views.exchange_rate, name="exchange_rate"),
 ]

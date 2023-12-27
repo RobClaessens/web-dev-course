@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from urllib.parse import urlparse
 
 from .models import User, Portfolio, Stock, StockWatch, StockTransaction, StockDividend, FiatTransaction, FiatDividend
+from .utils import get_exchange_rate
 
 
 def index(request):
@@ -273,13 +274,22 @@ def add_transaction(request, portfolio_id):
                     price = request.POST["price"]
                     buy = transaction_method == "buy"
 
+                    # Get exchange rate
+                    rate = get_exchange_rate(portfolio.currency, stock.currency)
+
+                    # Convert price and costs to portfolio currency
+                    price_in_portfolio_currency = float(price) / rate
+                    costs_in_portfolio_currency = float(costs) / rate
+
                     # Create StockTransaction
                     transaction = StockTransaction(date=date,
                                                    portfolio=portfolio,
                                                    stock=stock,
                                                    amount=amount if buy else f"-{amount}",
                                                    price=price,
-                                                   costs=costs)
+                                                   costs=costs,
+                                                   price_in_portfolio_currency=price_in_portfolio_currency,
+                                                   costs_in_portfolio_currency=costs_in_portfolio_currency)
 
                 case "FiatTransaction":
 
@@ -338,6 +348,12 @@ def add_dividend(request, portfolio_id):
             amount = request.POST["amount"]
             costs = request.POST["costs"]
 
+            # Get exchange rate
+            rate = get_exchange_rate(portfolio.currency, stock.currency)
+
+            # Convert costs to portfolio currency
+            costs_in_portfolio_currency = float(costs) / rate
+
             # Create dividend and save
             match dividend_type:
                 case "StockDividend":
@@ -347,7 +363,8 @@ def add_dividend(request, portfolio_id):
                                              portfolio=portfolio,
                                              stock=stock,
                                              amount=amount,
-                                             costs=costs)
+                                             costs=costs,
+                                             costs_in_portfolio_currency=costs_in_portfolio_currency)
 
                 case "FiatDividend":
 
@@ -356,7 +373,8 @@ def add_dividend(request, portfolio_id):
                                             portfolio=portfolio,
                                             stock=stock,
                                             amount=amount,
-                                            costs=costs)
+                                            costs=costs,
+                                            costs_in_portfolio_currency=costs_in_portfolio_currency)
                 case _:
                     raise NotSupportedError(f"Unknown dividend type {dividend_type}. Dividend not added.")
 
@@ -487,6 +505,27 @@ def portfolio(request, portfolio_id):
         # TODO: Compute metrics (overal gain, absolute, percentage, etc.) Might be in a different div and endpoint!
 
         return JsonResponse([s for s in sorted(portfolio_dict.values(), key=lambda s: s['name'])], safe=False)
+
+    # Provide error message if not GET request
+    else:
+        return JsonResponse({"error": "GET request required."}, status=400)
+
+
+@login_required
+def exchange_rate(request, base_currency, target_currency):
+
+    # Try to retrieve exchange rate
+    if request.method == "GET":
+
+        # Get exchange rate
+        rate = get_exchange_rate(base_currency, target_currency)
+
+        # Return exchange rate if found
+        if rate:
+            return JsonResponse(rate, safe=False)
+        # Otherwise, return error
+        else:
+            return JsonResponse({"error": "Exchange rate not found."}, status=404)
 
     # Provide error message if not GET request
     else:
