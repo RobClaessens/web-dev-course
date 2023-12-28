@@ -41,7 +41,7 @@ function load_stocks() {
                         {title: "Symbol", field: "symbol", width: 100},
                         {title: "Exchange", field: "exchange", width: 100},
                         {title: "ISIN", field: "ISIN", width: 150},
-                        {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
+                        {title: "Price", field: "price", width: 80, formatter: currencyFormatter},
                         {title: "Watch", field: "watched", formatter: "tickCross", hozAlign: "center",
                             cellClick: function (e, cell) { toggleStockWatch(cell) }, width: 80},
                     ],
@@ -58,7 +58,7 @@ function load_stocks() {
                     {title: "Symbol", field: "symbol", width: 150},
                     {title: "Exchange", field: "exchange", width: 150},
                     {title: "ISIN", field: "ISIN", width: 150},
-                    {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
+                    {title: "Price", field: "price", width: 80, formatter: currencyFormatter},
                 ],
             });
         }
@@ -90,7 +90,7 @@ function load_watched_stocks() {
                 {title: "Symbol", field: "symbol", width: 150},
                 {title: "Exchange", field: "exchange", width: 150},
                 {title: "ISIN", field: "ISIN", width: 150},
-                {title: "Price", field: "price", width: 150, formatter: currencyFormatter},
+                {title: "Price", field: "price", width: 80, formatter: currencyFormatter},
                 {title: "Watch", field: "watched", formatter: "tickCross", hozAlign: "center",
                     cellClick: function (e, cell) { toggleStockWatch(cell) }, width: 80},
             ],
@@ -105,53 +105,55 @@ function load_portfolio() {
     document.querySelector('#portfolio').innerHTML = '';
     document.querySelector('#portfolio').style.display = 'block';
 
-    // Load portfolio
-    fetch(`/portfolio/${portfolioId}`)
-    .then(response => response.json())
-    .then(portfolio => {
+    // Load portfolio if portfolioId is specified
+    if (portfolioId) {
+        fetch(`/portfolio/${portfolioId}`)
+        .then(response => response.json())
+        .then(portfolio => {
 
-        // Create Tabulator on DOM element
-        const table = new Tabulator("#portfolio", {
-            height: "100%",
-            data: portfolio['stocks'],
-            layout: "fitData",
-            columns: [
-                {title: "Name", field: "name", width: 150, frozen: true},
-                {title: "General", headerHozAlign: "center", columns: [
-                    {title: "Symbol", field: "symbol", width: 80, headerVertical: true},
-                    {title: "Exchange", field: "exchange", width: 80, headerVertical: true},
-                    {title: "ISIN", field: "ISIN", width: 120, headerVertical: true},
-                    {title: "Amount", field: "amount", width: 80, headerVertical: true},
-                    {title: "Price", field: "price", width: 80, headerVertical: true, formatter: currencyFormatter},
-                ]},
-                {title: "Performance", headerHozAlign: "center", columns: [
-                    {title: "Real. price", field: "realized_price", width: 80, headerVertical: true, formatter: currencyFormatter},
-                    {title: "Costs", field: "total_cost", width: 80, headerVertical: true, formatter: currencyFormatter,
-                        bottomCalc: () => { return portfolio['metrics']['total_cost'] },
-                        bottomCalcFormatter: currencyFormatter,
-                        bottomCalcFormatterParams: { currency: portfolio['portfolio']['currency'] }},
-                    {title: "Unr. PnL", field: "unrealized_pnl", width: 80, headerVertical: true, formatter: pnlFormatter,
-                        bottomCalc: () => { return portfolio['metrics']['unrealized_pnl'] },
-                        bottomCalcFormatter: pnlFormatter,
-                        bottomCalcFormatterParams: { currency: portfolio['portfolio']['currency'] }},
-                    {title: "Unr. PnL %", field: "unrealized_pnl_percentage", width: 80, headerVertical: true, formatter: percentageFormatter,
-                        bottomCalc: () => { return portfolio['metrics']['unrealized_pnl_percentage'] },
-                        bottomCalcFormatter: percentageFormatter },
-                    {title: "Fiat div.", field: "total_dividend", width: 80, headerVertical: true, formatter: currencyFormatter,
-                        bottomCalc: () => { return portfolio['metrics']['total_dividend'] },
-                        bottomCalcFormatter: currencyFormatter,
-                        bottomCalcFormatterParams: { currency: portfolio['portfolio']['currency'] }},
-                    {title: "Tot. ret.", field: "total_return", width: 80, headerVertical: true, formatter: pnlFormatter,
-                        bottomCalc: () => { return portfolio['metrics']['total_return'] },
-                        bottomCalcFormatter: pnlFormatter,
-                        bottomCalcFormatterParams: { currency: portfolio['portfolio']['currency'] }},
-                    {title: "Tot. ret. %", field: "total_return_percentage", width: 80, headerVertical: true, formatter: percentageFormatter,
-                        bottomCalc: () => { return portfolio['metrics']['total_return_percentage'] },
-                        bottomCalcFormatter: percentageFormatter },
-                ]},
-            ],
+            // Create Tabulator on DOM element
+            const table = new Tabulator("#portfolio", {
+                height: "100%",
+                data: portfolio['stocks'],
+                layout: "fitData",
+                columns: [
+                    {title: "Name", field: "name", width: 150, headerHozAlign: "center", frozen: true},
+                    {title: "General information", headerHozAlign: "center", columns: [
+                        {title: "Symbol", field: "symbol", width: 80, headerVertical: true},
+                        {title: "Exchange", field: "exchange", width: 80, headerVertical: true},
+                        {title: "ISIN", field: "ISIN", width: 120, headerVertical: true},
+                        {title: "Amount", field: "amount", width: 80, headerVertical: true},
+                        {title: "Price", field: "price", width: 80, headerVertical: true, formatter: currencyFormatter},
+                    ]},
+                    {title: "Performance metrics", headerHozAlign: "center", columns: [
+                        {title: "Real. price", field: "realized_price", width: 80, headerVertical: true, formatter: currencyFormatter},
+                        {title: "Costs", field: "total_cost", width: 80, headerVertical: true, formatter: currencyFormatter,
+                            bottomCalc: () => { return portfolio['metrics']['total_cost'] },
+                            bottomCalcFormatter: currencyFormatter,
+                            bottomCalcFormatterParams: { currency: portfolio['portfolio']['currency'] }},
+                        {title: "Unr. PnL", field: "unrealized_pnl", width: 80, headerVertical: true, formatter: pnlFormatter,
+                            bottomCalc: () => { return portfolio['metrics']['unrealized_pnl'] },
+                            bottomCalcFormatter: pnlFormatter,
+                            bottomCalcFormatterParams: { currency: portfolio['portfolio']['currency'] }},
+                        {title: "Unr. PnL %", field: "unrealized_pnl_percentage", width: 80, headerVertical: true, formatter: percentageFormatter,
+                            bottomCalc: () => { return portfolio['metrics']['unrealized_pnl_percentage'] },
+                            bottomCalcFormatter: percentageFormatter },
+                        {title: "Fiat div.", field: "total_dividend", width: 80, headerVertical: true, formatter: currencyFormatter,
+                            bottomCalc: () => { return portfolio['metrics']['total_dividend'] },
+                            bottomCalcFormatter: currencyFormatter,
+                            bottomCalcFormatterParams: { currency: portfolio['portfolio']['currency'] }},
+                        {title: "Tot. ret.", field: "total_return", width: 80, headerVertical: true, formatter: pnlFormatter,
+                            bottomCalc: () => { return portfolio['metrics']['total_return'] },
+                            bottomCalcFormatter: pnlFormatter,
+                            bottomCalcFormatterParams: { currency: portfolio['portfolio']['currency'] }},
+                        {title: "Tot. ret. %", field: "total_return_percentage", width: 80, headerVertical: true, formatter: percentageFormatter,
+                            bottomCalc: () => { return portfolio['metrics']['total_return_percentage'] },
+                            bottomCalcFormatter: percentageFormatter },
+                    ]},
+                ],
+            });
         });
-    });
+    }
 }
 
 
