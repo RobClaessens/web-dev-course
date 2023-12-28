@@ -24,6 +24,10 @@ class Portfolio(models.Model):
         return self.stocktransactions.all() + self.fiattransactions.all() + \
             self.stockdividends.all() + self.fiatdividends.all()
 
+    @property
+    def stocks(self):
+        return Stock.objects.filter(stocktransaction__portfolio=self).distinct()
+
     def serialize(self):
         return {
             "id": self.id,

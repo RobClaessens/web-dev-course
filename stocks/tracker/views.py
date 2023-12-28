@@ -33,6 +33,7 @@ def portfolios(request, portfolio_id=None):
         "watchlist": "false",
         "portfolios": [p.serialize() for p in request.user.portfolios.all()],
         "portfolio_id": portfolio_id or "null",
+        "delete": "false",
     })
 
 
@@ -163,7 +164,7 @@ def delete_profile(request):
         try:
             request.user.delete()
             return HttpResponseRedirect(reverse("index"))
-        except Error as e:
+        except Exception as e:
             if hasattr(e, 'message'):
                 message = e.message
             elif hasattr(e, 'args'):
@@ -215,7 +216,7 @@ def add_stock(request):
 
             return HttpResponseRedirect(reverse(previous))
 
-        except Error as e:
+        except Exception as e:
             if hasattr(e, 'message'):
                 message = e.message
             elif hasattr(e, 'args'):
@@ -258,7 +259,7 @@ def add_portfolio(request):
 
             return HttpResponseRedirect(f"/portfolios/{portfolio.id}")
 
-        except Error as e:
+        except Exception as e:
             if hasattr(e, 'message'):
                 message = e.message
             elif hasattr(e, 'args'):
@@ -288,8 +289,8 @@ def add_transaction(request, portfolio_id):
             # Get generic arguments
             date = request.POST["date"]
             portfolio = Portfolio.objects.get(pk=portfolio_id)
-            amount = request.POST["amount"]
-            costs = request.POST["costs"]
+            amount = float(request.POST["amount"])
+            costs = float(request.POST["costs"])
 
             # Create transaction and save
             match transaction_type:
@@ -297,29 +298,30 @@ def add_transaction(request, portfolio_id):
 
                     # Get specific arguments
                     stock = Stock.objects.get(pk=request.POST["stock"])
-                    price = request.POST["price"]
+                    price = float(request.POST["price"])
                     buy = transaction_method == "buy"
 
                     # Get exchange rate
                     rate = get_exchange_rate(portfolio.currency, stock.currency)
 
-                    # Convert price and costs to portfolio currency
-                    price_in_portfolio_currency = float(price) / rate
-                    costs_in_portfolio_currency = float(costs) / rate
+                    # Convert price to portfolio currency
+                    price_in_portfolio_currency = price / rate
 
                     # Create StockTransaction
                     transaction = StockTransaction(date=date,
                                                    portfolio=portfolio,
                                                    stock=stock,
-                                                   amount=amount if buy else f"-{amount}",
+                                                   amount=amount if buy else -amount,
                                                    price=price,
                                                    costs=costs,
-                                                   price_in_portfolio_currency=price_in_portfolio_currency,
-                                                   costs_in_portfolio_currency=costs_in_portfolio_currency)
+                                                   price_in_portfolio_currency=price_in_portfolio_currency)
+
+                    # Save transaction
+                    transaction.save()
 
                     # Update portfolio balance
-                    portfolio.balance -= float(transaction.amount) * float(transaction.price_in_portfolio_currency)
-                    portfolio.balance -= float(transaction.costs_in_portfolio_currency)
+                    portfolio.balance = float(portfolio.balance) - transaction.amount * transaction.price_in_portfolio_currency
+                    portfolio.balance = float(portfolio.balance) - transaction.costs
                     portfolio.save()
 
                 case "FiatTransaction":
@@ -333,19 +335,20 @@ def add_transaction(request, portfolio_id):
                                                   amount=amount if deposit else f"-{amount}",
                                                   costs=costs)
 
+                    # Save transaction
+                    transaction.save()
+
                     # Update portfolio balance
-                    portfolio.balance += float(transaction.amount)
-                    portfolio.balance -= float(transaction.costs)
+                    portfolio.balance = float(portfolio.balance) - transaction.amount
+                    portfolio.balance = float(portfolio.balance) - transaction.costs
                     portfolio.save()
 
                 case _:
                     raise NotSupportedError(f"Unknown transaction type {transaction_type}. Transaction not added.")
 
-            transaction.save()
-
             return HttpResponseRedirect(f"/portfolios/{portfolio_id}")
 
-        except Error as e:
+        except Exception as e:
             if hasattr(e, 'message'):
                 message = e.message
             elif hasattr(e, 'args'):
@@ -382,14 +385,11 @@ def add_dividend(request, portfolio_id):
             date = request.POST["date"]
             portfolio = Portfolio.objects.get(pk=portfolio_id)
             stock = Stock.objects.get(pk=request.POST["stock"])
-            amount = request.POST["amount"]
-            costs = request.POST["costs"]
+            amount = float(request.POST["amount"])
+            costs = float(request.POST["costs"])
 
             # Get exchange rate
             rate = get_exchange_rate(portfolio.currency, stock.currency)
-
-            # Convert costs to portfolio currency
-            costs_in_portfolio_currency = float(costs) / rate
 
             # Create dividend and save
             match dividend_type:
@@ -400,10 +400,13 @@ def add_dividend(request, portfolio_id):
                                              portfolio=portfolio,
                                              stock=stock,
                                              amount=amount,
-                                             costs=costs,
-                                             costs_in_portfolio_currency=costs_in_portfolio_currency)
+                                             costs=costs)
 
-                    # NOTE: Portfolio balance is not updated, as added stocks and costs are not reflected in the balance
+                    # Save dividend
+                    dividend.save()
+
+                    # Update portfolio balance
+                    portfolio.balance = float(portfolio.balance) - dividend.costs
 
                 case "FiatDividend":
 
@@ -416,22 +419,22 @@ def add_dividend(request, portfolio_id):
                                             stock=stock,
                                             amount=amount,
                                             amount_in_portfolio_currency=amount_in_portfolio_currency,
-                                            costs=costs,
-                                            costs_in_portfolio_currency=costs_in_portfolio_currency)
+                                            costs=costs)
+
+                    # Save dividend
+                    dividend.save()
 
                     # Update portfolio balance
-                    portfolio.balance += float(dividend.amount_in_portfolio_currency)
-                    portfolio.balance -= float(dividend.costs_in_portfolio_currency)
+                    portfolio.balance = float(portfolio.balance) + dividend.amount_in_portfolio_currency
+                    portfolio.balance = float(portfolio.balance) - dividend.costs
                     portfolio.save()
 
                 case _:
                     raise NotSupportedError(f"Unknown dividend type {dividend_type}. Dividend not added.")
 
-            dividend.save()
-
             return HttpResponseRedirect(f"/portfolios/{portfolio_id}")
 
-        except Error as e:
+        except Exception as e:
             if hasattr(e, 'message'):
                 message = e.message
             elif hasattr(e, 'args'):
@@ -449,7 +452,7 @@ def add_dividend(request, portfolio_id):
     else:
         return render(request, "add_dividend.html", {
             "portfolio": Portfolio.objects.get(pk=portfolio_id),
-            "stocks": sorted(Stock.objects.all(), key=lambda s: s.name),
+            "stocks": sorted(Portfolio.objects.get(pk=portfolio_id).stocks, key=lambda s: s.name),
             "currencies": sorted(set([s.currency for s in Stock.objects.all()])),
         })
 
@@ -516,7 +519,7 @@ def portfolio(request, portfolio_id):
     # Get portfolio
     try:
         portfolio = Portfolio.objects.get(pk=portfolio_id)
-    except Error:
+    except Portfolio.DoesNotExist:
         return JsonResponse({"error": "Portfolio not found."}, status=404)
 
     # Try to retrieve portfolio price
@@ -537,18 +540,16 @@ def portfolio(request, portfolio_id):
                     'price_in_portfolio_currency': stock_dict['price'] / get_exchange_rate(portfolio.currency, stock_dict['currency']),
                     'amount': 0,
                     'total_price': 0,
-                    'total_cost': 0,
                     'total_dividend': 0,
                     'total_price_in_portfolio_currency': 0,
-                    'total_cost_in_portfolio_currency': 0,
                     'total_dividend_in_portfolio_currency': 0,
+                    'total_cost': 0,
                 }
 
             stocks_dict[stock_id]['amount'] += float(transaction.amount)
             stocks_dict[stock_id]['total_price'] += float(transaction.amount * transaction.price)
             stocks_dict[stock_id]['total_price_in_portfolio_currency'] += float(transaction.amount * (transaction.price_in_portfolio_currency or transaction.price))
             stocks_dict[stock_id]['total_cost'] += float(transaction.costs)
-            stocks_dict[stock_id]['total_cost_in_portfolio_currency'] += float(transaction.costs_in_portfolio_currency or transaction.costs)
 
         # Iterate through stock dividends
         for dividend in portfolio.stockdividends.all():
@@ -556,7 +557,6 @@ def portfolio(request, portfolio_id):
 
             stocks_dict[stock_id]['amount'] += float(dividend.amount)
             stocks_dict[stock_id]['total_cost'] += float(dividend.costs)
-            stocks_dict[stock_id]['total_cost_in_portfolio_currency'] += float(dividend.costs_in_portfolio_currency or dividend.costs)
 
         # Iterate through fiat dividends
         for dividend in portfolio.fiatdividends.all():
@@ -565,7 +565,6 @@ def portfolio(request, portfolio_id):
             stocks_dict[stock_id]['total_dividend'] += float(dividend.amount)
             stocks_dict[stock_id]['total_dividend_in_portfolio_currency'] += float(dividend.amount_in_portfolio_currency or dividend.amount)
             stocks_dict[stock_id]['total_cost'] += float(dividend.costs)
-            stocks_dict[stock_id]['total_cost_in_portfolio_currency'] += float(dividend.costs_in_portfolio_currency or dividend.costs)
 
         # Remove stocks with zero amount
         [stocks_dict.pop(k) for k in list(stocks_dict.keys()) if stocks_dict[k]['amount'] == 0]
@@ -583,7 +582,7 @@ def portfolio(request, portfolio_id):
             stocks_dict[stock_id]['unrealized_pnl_in_portfolio_currency'] = (
                     stocks_dict[stock_id]['amount'] * stocks_dict[stock_id]['price_in_portfolio_currency'] -
                     stocks_dict[stock_id]['total_price_in_portfolio_currency'] -
-                    stocks_dict[stock_id]['total_cost_in_portfolio_currency'])
+                    stocks_dict[stock_id]['total_cost'])
             stocks_dict[stock_id]['total_return'] = (stocks_dict[stock_id]['unrealized_pnl'] +
                                                      stocks_dict[stock_id]['total_dividend'])
             stocks_dict[stock_id]['total_return_percentage'] = (
@@ -596,7 +595,7 @@ def portfolio(request, portfolio_id):
         # Compute metrics
         # TODO: Currently excludes stocks that have been sold, split these (?), i.e. with and without sold stocks
         metrics_dict['total_price'] = sum([stocks_dict[k]['total_price_in_portfolio_currency'] for k in stocks_dict])
-        metrics_dict['total_cost'] = sum([stocks_dict[k]['total_cost_in_portfolio_currency'] for k in stocks_dict])
+        metrics_dict['total_cost'] = sum([stocks_dict[k]['total_cost'] for k in stocks_dict])
         metrics_dict['total_cost_percentage'] = metrics_dict['total_cost'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0
         metrics_dict['total_dividend'] = sum([stocks_dict[k]['total_dividend'] for k in stocks_dict])
         metrics_dict['total_dividend_percentage'] = metrics_dict['total_dividend'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0
@@ -628,6 +627,7 @@ def delete_portfolio(request, portfolio_id):
             "watchlist": "false",
             "portfolios": [p.serialize() for p in request.user.portfolios.all()],
             "portfolio_id": "null",
+            "delete": "false",
         })
 
     if request.method == "POST":
@@ -635,7 +635,7 @@ def delete_portfolio(request, portfolio_id):
         # Attempt to delete portfolio
         try:
             portfolio.delete()
-        except Error as e:
+        except Exception as e:
             if hasattr(e, 'message'):
                 message = e.message
             elif hasattr(e, 'args'):
@@ -657,6 +657,7 @@ def delete_portfolio(request, portfolio_id):
             "watchlist": "false",
             "portfolios": [p.serialize() for p in request.user.portfolios.all()],
             "portfolio_id": "null",
+            "delete": "false",
         })
 
     else:
