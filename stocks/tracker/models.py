@@ -28,6 +28,9 @@ class Portfolio(models.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "user": self.user.username,
+            "balance": float(self.balance),
+            "currency": self.currency,
         }
 
     def __str__(self):
@@ -172,6 +175,9 @@ class StockDividend(Dividend):
 
 class FiatDividend(Dividend):
     """Model representing a fiat dividend."""
+    # Also store amount in portfolio currency, as this can differ from the stock currency
+    amount_in_portfolio_currency = models.DecimalField(max_digits=6, decimal_places=2, null=True)
+
     def __str__(self):
         return f"{self.__class__.__name__} {self.stock.name} ({self.stock.symbol}) - " \
                f"{self.portfolio.currency}{self.amount} on {self.date} - " \
