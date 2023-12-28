@@ -156,6 +156,33 @@ def profile(request):
 
 
 @login_required
+def delete_profile(request):
+    if request.method == "POST":
+
+        # Attempt to delete user
+        try:
+            request.user.delete()
+            return HttpResponseRedirect(reverse("index"))
+        except Error as e:
+            if hasattr(e, 'message'):
+                message = e.message
+            elif hasattr(e, 'args'):
+                message = e.args[0]
+            else:
+                message = "Unknown error while deleting account"
+
+            return render(request, "profile.html", {
+                "message": message,
+                "delete": "true",
+            })
+
+    else:
+        return render(request, "profile.html", {
+            "delete": "true",
+        })
+
+
+@login_required
 def add_stock(request):
     if request.method == "POST":
 

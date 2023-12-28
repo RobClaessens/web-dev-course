@@ -85,12 +85,12 @@
     justify-content: space-between;
 }
 
-.add-form-buttons .btn-primary, .form-group-currency select, .form-group-currency input, .form-group label {
+.add-form-buttons .btn-primary, .add-form-buttons .btn-danger, .form-group-currency select, .form-group-currency input, .form-group label {
     width: 48%;
     margin-bottom: 0;
 }
 
-#profile .btn-primary {
+#profile-form .btn-primary {
     width: 100%;
     margin-bottom: 0;
 }
