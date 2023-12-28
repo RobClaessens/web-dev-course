@@ -290,6 +290,11 @@ def add_transaction(request, portfolio_id):
                                                    price_in_portfolio_currency=price_in_portfolio_currency,
                                                    costs_in_portfolio_currency=costs_in_portfolio_currency)
 
+                    # Update portfolio balance
+                    portfolio.balance -= float(transaction.amount) * float(transaction.price_in_portfolio_currency)
+                    portfolio.balance -= float(transaction.costs_in_portfolio_currency)
+                    portfolio.save()
+
                 case "FiatTransaction":
 
                     # Get specific arguments
@@ -300,6 +305,12 @@ def add_transaction(request, portfolio_id):
                                                   portfolio=portfolio,
                                                   amount=amount if deposit else f"-{amount}",
                                                   costs=costs)
+
+                    # Update portfolio balance
+                    portfolio.balance += float(transaction.amount)
+                    portfolio.balance -= float(transaction.costs)
+                    portfolio.save()
+
                 case _:
                     raise NotSupportedError(f"Unknown transaction type {transaction_type}. Transaction not added.")
 
@@ -365,15 +376,27 @@ def add_dividend(request, portfolio_id):
                                              costs=costs,
                                              costs_in_portfolio_currency=costs_in_portfolio_currency)
 
+                    # NOTE: Portfolio balance is not updated, as added stocks and costs are not reflected in the balance
+
                 case "FiatDividend":
+
+                    # Convert amount to portfolio currency
+                    amount_in_portfolio_currency = float(amount) / rate
 
                     # Create FiatDividend
                     dividend = FiatDividend(date=date,
                                             portfolio=portfolio,
                                             stock=stock,
                                             amount=amount,
+                                            amount_in_portfolio_currency=amount_in_portfolio_currency,
                                             costs=costs,
                                             costs_in_portfolio_currency=costs_in_portfolio_currency)
+
+                    # Update portfolio balance
+                    portfolio.balance += float(dividend.amount_in_portfolio_currency)
+                    portfolio.balance -= float(dividend.costs_in_portfolio_currency)
+                    portfolio.save()
+
                 case _:
                     raise NotSupportedError(f"Unknown dividend type {dividend_type}. Dividend not added.")
 
