@@ -247,7 +247,6 @@ def add_portfolio(request):
         return render(request, "add_portfolio.html")
 
 
-# TODO: One endpoint but make specific functions per type of transaction?
 @login_required
 def add_transaction(request, portfolio_id):
     if request.method == "POST":
@@ -473,12 +472,12 @@ def portfolio(request, portfolio_id):
     # Try to retrieve portfolio price
     if request.method == "GET":
 
-        # Setup stocks and metrics dictionaries
+        # Setup portfolio, stocks and metrics dictionaries
+        portfolio_dict = portfolio.serialize()
         stocks_dict = dict()
-        metric_dict = dict()
+        metrics_dict = dict()
 
         # Iterate through stock transactions to setup portfolio
-        # TODO: Include stock and fiat dividends
         for transaction in portfolio.stocktransactions.all():
             stock_dict = transaction.stock.serialize()
             stock_id = stock_dict.get('id')
@@ -489,17 +488,34 @@ def portfolio(request, portfolio_id):
                     'amount': 0,
                     'total_price': 0,
                     'total_cost': 0,
+                    'total_dividend': 0,
                     'total_price_in_portfolio_currency': 0,
                     'total_cost_in_portfolio_currency': 0,
+                    'total_dividend_in_portfolio_currency': 0,
                 }
 
             stocks_dict[stock_id]['amount'] += float(transaction.amount)
+            stocks_dict[stock_id]['total_price'] += float(transaction.amount * transaction.price)
+            stocks_dict[stock_id]['total_price_in_portfolio_currency'] += float(transaction.amount * (transaction.price_in_portfolio_currency or transaction.price))
             stocks_dict[stock_id]['total_cost'] += float(transaction.costs)
             stocks_dict[stock_id]['total_cost_in_portfolio_currency'] += float(transaction.costs_in_portfolio_currency or transaction.costs)
-            # TODO: 'if' not required if only dealing with stocktransaction!
-            if transaction.amount > 0:
-                stocks_dict[stock_id]['total_price'] += float(transaction.amount * transaction.price)
-                stocks_dict[stock_id]['total_price_in_portfolio_currency'] += float(transaction.amount * (transaction.price_in_portfolio_currency or transaction.price))
+
+        # Iterate through stock dividends
+        for dividend in portfolio.stockdividends.all():
+            stock_id = dividend.stock.id
+
+            stocks_dict[stock_id]['amount'] += float(dividend.amount)
+            stocks_dict[stock_id]['total_cost'] += float(dividend.costs)
+            stocks_dict[stock_id]['total_cost_in_portfolio_currency'] += float(dividend.costs_in_portfolio_currency or dividend.costs)
+
+        # Iterate through fiat dividends
+        for dividend in portfolio.fiatdividends.all():
+            stock_id = dividend.stock.id
+
+            stocks_dict[stock_id]['total_dividend'] += float(dividend.amount)
+            stocks_dict[stock_id]['total_dividend_in_portfolio_currency'] += float(dividend.amount_in_portfolio_currency or dividend.amount)
+            stocks_dict[stock_id]['total_cost'] += float(dividend.costs)
+            stocks_dict[stock_id]['total_cost_in_portfolio_currency'] += float(dividend.costs_in_portfolio_currency or dividend.costs)
 
         # Remove stocks with zero amount
         [stocks_dict.pop(k) for k in list(stocks_dict.keys()) if stocks_dict[k]['amount'] == 0]
@@ -518,21 +534,31 @@ def portfolio(request, portfolio_id):
                     stocks_dict[stock_id]['amount'] * stocks_dict[stock_id]['price_in_portfolio_currency'] -
                     stocks_dict[stock_id]['total_price_in_portfolio_currency'] -
                     stocks_dict[stock_id]['total_cost_in_portfolio_currency'])
+            stocks_dict[stock_id]['total_return'] = (stocks_dict[stock_id]['unrealized_pnl'] +
+                                                     stocks_dict[stock_id]['total_dividend'])
+            stocks_dict[stock_id]['total_return_percentage'] = (
+                    stocks_dict[stock_id]['total_return'] / stocks_dict[stock_id]['total_price'] * 100) \
+                if stocks_dict[stock_id]['total_price'] else 0
+            stocks_dict[stock_id]['total_return_in_portfolio_currency'] = (
+                    stocks_dict[stock_id]['unrealized_pnl_in_portfolio_currency'] +
+                    stocks_dict[stock_id]['total_dividend_in_portfolio_currency'])
 
         # Compute metrics
         # TODO: Currently excludes stocks that have been sold, split these (?), i.e. with and without sold stocks
-        metric_dict['currency'] = portfolio.currency
-        metric_dict['total_price'] = sum([stocks_dict[k]['total_price_in_portfolio_currency'] for k in stocks_dict])
-        metric_dict['total_cost'] = sum([stocks_dict[k]['total_cost_in_portfolio_currency'] for k in stocks_dict])
-        metric_dict['total_cost_percentage'] = metric_dict['total_cost'] / metric_dict['total_price'] * 100 if metric_dict['total_price'] else 0
-        metric_dict['unrealized_pnl'] = sum([stocks_dict[k]['unrealized_pnl_in_portfolio_currency'] for k in stocks_dict])
-        metric_dict['unrealized_pnl_percentage'] = metric_dict['unrealized_pnl'] / metric_dict['total_price'] * 100 if metric_dict['total_price'] else 0
-
-        # TODO: Compute metrics (overall gain, absolute, percentage, etc.) Might be in a different div and endpoint!
+        metrics_dict['total_price'] = sum([stocks_dict[k]['total_price_in_portfolio_currency'] for k in stocks_dict])
+        metrics_dict['total_cost'] = sum([stocks_dict[k]['total_cost_in_portfolio_currency'] for k in stocks_dict])
+        metrics_dict['total_cost_percentage'] = metrics_dict['total_cost'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0
+        metrics_dict['total_dividend'] = sum([stocks_dict[k]['total_dividend'] for k in stocks_dict])
+        metrics_dict['total_dividend_percentage'] = metrics_dict['total_dividend'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0
+        metrics_dict['unrealized_pnl'] = sum([stocks_dict[k]['unrealized_pnl_in_portfolio_currency'] for k in stocks_dict])
+        metrics_dict['unrealized_pnl_percentage'] = metrics_dict['unrealized_pnl'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0
+        metrics_dict['total_return'] = sum([stocks_dict[k]['total_return_in_portfolio_currency'] for k in stocks_dict])
+        metrics_dict['total_return_percentage'] = metrics_dict['total_return'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0
 
         return JsonResponse({
+            'portfolio': portfolio_dict,
             'stocks': [s for s in sorted(stocks_dict.values(), key=lambda s: s['name'])],
-            'metrics': metric_dict
+            'metrics': metrics_dict
         })
 
     # Provide error message if not GET request
