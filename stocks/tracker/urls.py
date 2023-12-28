@@ -14,6 +14,7 @@ urlpatterns = [
     path("delete_profile", views.delete_profile, name="delete_profile"),
     path("portfolios", views.portfolios, name="portfolios"),
     path("portfolios/<int:portfolio_id>", views.portfolios, name="portfolios"),
+    path("delete_portfolio/<int:portfolio_id>", views.delete_portfolio, name="delete_portfolio"),
 
     # Addition views
     path("add_stock", views.add_stock, name="add_stock"),

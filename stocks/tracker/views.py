@@ -617,6 +617,59 @@ def portfolio(request, portfolio_id):
 
 
 @login_required
+def delete_portfolio(request, portfolio_id):
+
+    # Get portfolio
+    try:
+        portfolio = Portfolio.objects.get(pk=portfolio_id)
+    except Portfolio.DoesNotExist:
+        return render(request, "portfolios.html", {
+            "user_id": request.user.id,
+            "watchlist": "false",
+            "portfolios": [p.serialize() for p in request.user.portfolios.all()],
+            "portfolio_id": "null",
+        })
+
+    if request.method == "POST":
+
+        # Attempt to delete portfolio
+        try:
+            portfolio.delete()
+        except Error as e:
+            if hasattr(e, 'message'):
+                message = e.message
+            elif hasattr(e, 'args'):
+                message = e.args[0]
+            else:
+                message = "Unknown error while deleting portfolio"
+
+            return render(request, "portfolios.html", {
+                "user_id": request.user.id,
+                "watchlist": "false",
+                "portfolios": [p.serialize() for p in request.user.portfolios.all()],
+                "portfolio_id": portfolio_id,
+                "message": message,
+                "delete": "true",
+            })
+
+        return render(request, "portfolios.html", {
+            "user_id": request.user.id,
+            "watchlist": "false",
+            "portfolios": [p.serialize() for p in request.user.portfolios.all()],
+            "portfolio_id": "null",
+        })
+
+    else:
+        return render(request, "portfolios.html", {
+            "user_id": request.user.id,
+            "watchlist": "false",
+            "portfolios": [p.serialize() for p in request.user.portfolios.all()],
+            "portfolio_id": portfolio_id,
+            "delete": "true",
+        })
+
+
+@login_required
 def exchange_rate(request, base_currency, target_currency):
 
     # Try to retrieve exchange rate

@@ -19,6 +19,9 @@
                                 <li class="nav-item nav-item-nested">
                                     <a class="nav-link nav-link-nested" href="{% url 'add_dividend' portfolio.id %}">Add dividend</a>
                                 </li>
+                                <li class="nav-item nav-item-nested">
+                                    <a class="nav-link nav-link-nested" href="{% url 'delete_portfolio' portfolio.id %}">Delete portfolio</a>
+                                </li>
                             </ul>
                         </li>
                     {% else %}
@@ -37,13 +40,34 @@
 {% endblock %}
 
 {% block body %}
-    <div id="portfolio"></div>
-    <script data-user-id="{{ user_id }}" data-watchlist="{{ watchlist }}" data-portfolios="{{ portfolios }}" data-portfolio-id="{{ portfolio_id }}">
+    <div id="portfolio">
+
+        {% if delete %}
+            <div id="delete">
+                <div class="error-message">{{ message }}</div>
+                {% for portfolio in portfolios %}
+                    {% if portfolio.id == portfolio_id %}
+                        <label class="col-form-label-lg">Are you sure you want to delete your portfolio '{{ portfolio.name }}'?</label>
+                        <form method="post" action="{% url 'delete_portfolio' portfolio.id %}">
+                            {% csrf_token %}
+                            <div class="add-form-buttons">
+                                <input class="btn btn-danger" type="submit" value="Delete">
+                                <a class="btn btn-primary" href="{% url 'portfolios' portfolio.id %}">Cancel</a>
+                            </div>
+                        </form>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    </div>
+    <script data-user-id="{{ user_id }}" data-watchlist="{{ watchlist }}" data-portfolios="{{ portfolios }}" data-portfolio-id="{{ portfolio_id }}" data-delete="{{ delete }}">
         const data = document.currentScript.dataset;
         const userId = JSON.parse(data.userId);
         const watchlist = JSON.parse(data.watchlist);
         const portfolios = data.portfolios;
         const portfolioId = JSON.parse(data.portfolioId);
+        const deletePortfolio = JSON.parse(data.delete);
     </script>
     <script src="{% static 'tracker.js' %}"></script>
     <script src="{% static 'tableutils.js' %}"></script>

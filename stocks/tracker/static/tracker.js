@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (watchlist) {
         load_watched_stocks();
     } else if (portfolios) {
-        load_portfolio();
+        if (!deletePortfolio) { load_portfolio(); }
     } else {
         load_stocks();
     }
