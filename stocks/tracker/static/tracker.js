@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (watchlist) {
         load_watched_stocks();
     } else if (portfolios) {
-        if (!deletePortfolio) { load_portfolio(); }
+       load_portfolio();
     } else {
         load_stocks();
     }
@@ -101,9 +101,7 @@ function load_watched_stocks() {
 
 function load_portfolio() {
 
-    // Clear and show the stocks view
-    document.querySelector('#portfolio').innerHTML = '';
-    document.querySelector('#portfolio').style.display = 'block';
+    // TODO: Only create tables when divs can be found
 
     // Load portfolio if portfolioId is specified
     if (portfolioId) {
@@ -111,11 +109,11 @@ function load_portfolio() {
         .then(response => response.json())
         .then(portfolio => {
 
-            // Create Tabulator on DOM element
-            const table = new Tabulator("#portfolio", {
-                height: "100%",
+            // Create Tabulator on DOM element with portfolio stocks
+            new Tabulator("#stocks", {
+                maxHeight: "100%",
                 data: portfolio['stocks'],
-                layout: "fitData",
+                layout: "fitDataTable",
                 columns: [
                     {title: "Name", field: "name", width: 150, headerHozAlign: "center", frozen: true},
                     {title: "General information", headerHozAlign: "center", columns: [
@@ -149,6 +147,45 @@ function load_portfolio() {
                         {title: "Tot. ret. %", field: "total_return_percentage", width: 80, headerVertical: true, formatter: percentageFormatter,
                             bottomCalc: () => { return portfolio['metrics']['total_return_percentage'] },
                             bottomCalcFormatter: percentageFormatter },
+                    ]},
+                ],
+            });
+
+            // Create Tabulator on DOM element with portfolio metrics
+            new Tabulator("#metrics", {
+                maxHeight: "100%",
+                data: [{...portfolio['portfolio'], ...portfolio['metrics']}],
+                layout: "fitDataTable",
+                columns: [
+                    {title: "Total investment", field: "total_investment", width: 150,
+                        headerHozAlign: "center", hozAlign: "center",
+                        formatter: currencyFormatter, formatterParams: { currency: portfolio['portfolio']['currency'] }},
+                    {title: "Balance", field: "balance", width: 150,
+                        headerHozAlign: "center", hozAlign: "center",
+                        formatter: currencyFormatter, formatterParams: { currency: portfolio['portfolio']['currency'] }},
+                    {title: "Total cost", headerHozAlign: "center", columns: [
+                        {field: "total_cost", width: 75, cssClass: "hide-header", hozAlign: "center",
+                            formatter: currencyFormatter, formatterParams: { currency: portfolio['portfolio']['currency'] }},
+                        {field: "total_cost_percentage", width: 75, cssClass: "hide-header", hozAlign: "center",
+                            formatter: percentageFormatter, formatterParams: { noColor: true }},
+                    ]},
+                    {title: "Total dividend", headerHozAlign: "center", columns: [
+                        {field: "total_dividend", width: 75, cssClass: "hide-header", hozAlign: "center",
+                            formatter: currencyFormatter, formatterParams: { currency: portfolio['portfolio']['currency'] }},
+                        {field: "total_dividend_percentage", width: 75, cssClass: "hide-header", hozAlign: "center",
+                            formatter: percentageFormatter, formatterParams: { noColor: true }},
+                    ]},
+                    {title: "Unrealized PnL", headerHozAlign: "center", columns: [
+                        {field: "unrealized_pnl", width: 75, cssClass: "hide-header", hozAlign: "center",
+                            formatter: pnlFormatter, formatterParams: { currency: portfolio['portfolio']['currency'] }},
+                        {field: "unrealized_pnl_percentage", width: 75, cssClass: "hide-header", hozAlign: "center",
+                            formatter: percentageFormatter},
+                    ]},
+                    {title: "Total return", headerHozAlign: "center", columns: [
+                        {field: "total_return", width: 75, cssClass: "hide-header", hozAlign: "center",
+                        formatter: pnlFormatter, formatterParams: { currency: portfolio['portfolio']['currency'] }},
+                    {field: "total_return_percentage", width: 75, cssClass: "hide-header", hozAlign: "center",
+                        formatter: percentageFormatter},
                     ]},
                 ],
             });

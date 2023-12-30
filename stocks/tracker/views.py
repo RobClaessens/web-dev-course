@@ -33,7 +33,6 @@ def portfolios(request, portfolio_id=None):
         "watchlist": "false",
         "portfolios": [p.serialize() for p in request.user.portfolios.all()],
         "portfolio_id": portfolio_id or "null",
-        "delete": "false",
     })
 
 
@@ -597,8 +596,9 @@ def portfolio(request, portfolio_id):
         metrics_dict['total_price'] = sum([stocks_dict[k]['total_price_in_portfolio_currency'] for k in stocks_dict])
         metrics_dict['total_cost'] = sum([stocks_dict[k]['total_cost'] for k in stocks_dict])
         metrics_dict['total_cost_percentage'] = metrics_dict['total_cost'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0
-        metrics_dict['total_dividend'] = sum([stocks_dict[k]['total_dividend'] for k in stocks_dict])
+        metrics_dict['total_dividend'] = sum([stocks_dict[k]['total_dividend_in_portfolio_currency'] for k in stocks_dict])
         metrics_dict['total_dividend_percentage'] = metrics_dict['total_dividend'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0
+        metrics_dict['total_investment'] = metrics_dict['total_price'] + metrics_dict['total_cost']
         metrics_dict['unrealized_pnl'] = sum([stocks_dict[k]['unrealized_pnl_in_portfolio_currency'] for k in stocks_dict])
         metrics_dict['unrealized_pnl_percentage'] = metrics_dict['unrealized_pnl'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0
         metrics_dict['total_return'] = sum([stocks_dict[k]['total_return_in_portfolio_currency'] for k in stocks_dict])
@@ -627,7 +627,6 @@ def delete_portfolio(request, portfolio_id):
             "watchlist": "false",
             "portfolios": [p.serialize() for p in request.user.portfolios.all()],
             "portfolio_id": "null",
-            "delete": "false",
         })
 
     if request.method == "POST":
@@ -657,7 +656,6 @@ def delete_portfolio(request, portfolio_id):
             "watchlist": "false",
             "portfolios": [p.serialize() for p in request.user.portfolios.all()],
             "portfolio_id": "null",
-            "delete": "false",
         })
 
     else:

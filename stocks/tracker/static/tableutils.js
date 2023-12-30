@@ -15,11 +15,13 @@ function percentageFormatter(cell, formatterParams, onRendered) {
     // Get value from cell
     const value = cell.getValue();
 
-    // Add 'profit' or 'loss' class depending on value
-    if (value > 0) {
-        cell.getElement().classList.add('profit');
-    } else if (value < 0) {
-        cell.getElement().classList.add('loss');
+    // Add 'profit' or 'loss' class depending on value, unless explicitly indicated not to
+    if (!formatterParams.noColor) {
+        if (value > 0) {
+            cell.getElement().classList.add('profit');
+        } else if (value < 0) {
+            cell.getElement().classList.add('loss');
+        }
     }
 
     // Return value rounded to two decimals

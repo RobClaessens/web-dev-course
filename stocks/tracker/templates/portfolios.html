@@ -43,7 +43,7 @@
     <div id="portfolio">
 
         {% if delete %}
-            <div id="delete">
+            <div id="delete-form">
                 <div class="error-message">{{ message }}</div>
                 {% for portfolio in portfolios %}
                     {% if portfolio.id == portfolio_id %}
@@ -58,16 +58,18 @@
                     {% endif %}
                 {% endfor %}
             </div>
+        {% else %}
+            <div id="stocks"></div>
+            <div id="metrics"></div>
         {% endif %}
 
     </div>
-    <script data-user-id="{{ user_id }}" data-watchlist="{{ watchlist }}" data-portfolios="{{ portfolios }}" data-portfolio-id="{{ portfolio_id }}" data-delete="{{ delete }}">
+    <script data-user-id="{{ user_id }}" data-watchlist="{{ watchlist }}" data-portfolios="{{ portfolios }}" data-portfolio-id="{{ portfolio_id }}">
         const data = document.currentScript.dataset;
         const userId = JSON.parse(data.userId);
         const watchlist = JSON.parse(data.watchlist);
         const portfolios = data.portfolios;
         const portfolioId = JSON.parse(data.portfolioId);
-        const deletePortfolio = JSON.parse(data.delete);
     </script>
     <script src="{% static 'tracker.js' %}"></script>
     <script src="{% static 'tableutils.js' %}"></script>

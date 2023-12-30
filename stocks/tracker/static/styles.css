@@ -72,11 +72,16 @@
     border-color: black;
 }
 
-#stocks, #portfolio, #profile, #add-form {
-    margin: 20px;
+#portfolio {
+    display: block;
+    width: min-content;
 }
 
-#profile, #add-form, #portfolio #delete {
+#stocks, #metrics, #profile, #add-form, #delete-form {
+    margin: 20px 20px 0;
+}
+
+#profile, #add-form, #delete-form {
     width: 300px;
 }
 
@@ -122,4 +127,12 @@
 
 .loss {
     color: red;
+}
+
+.tabulator-col-group-cols:has(.hide-header) {
+    border-top: none !important;
+}
+
+.hide-header {
+    height: 0;
 }
