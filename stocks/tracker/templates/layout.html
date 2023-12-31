@@ -12,7 +12,7 @@
             // Some JavaScript to make the sidebar responsive and foldable
             function setSidebarHeight() {
                 const sidebar = document.querySelector(".sidebar");
-                sidebar.style.height = `${window.innerHeight - sidebar.offsetTop}px`;
+                sidebar.style.height = `${document.documentElement.clientHeight + document.documentElement.scrollTop - sidebar.offsetTop}px`;
             }
             function unfoldSidebar() {
                 const sidebar = document.querySelector(".sidebar");
@@ -37,6 +37,7 @@
             // Attach height function to DOMContentLoaded and resize events
             document.addEventListener("DOMContentLoaded", setSidebarHeight);
             window.addEventListener("resize", setSidebarHeight);
+            window.addEventListener("scroll", setSidebarHeight);
 
             // Attach (un)fold functions to mouseover and mouseout events
             document.addEventListener("DOMContentLoaded", () => {

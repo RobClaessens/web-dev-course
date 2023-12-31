@@ -1,12 +1,13 @@
 .body:has(.sidebar) {
     display: flex;
+    overflow: hidden;
 }
 
 .sidebar {
     display: block;
     height: 100%;
     width: 70px;
-    overflow-x: hidden;
+    overflow: hidden;
     transition: width 0.5s;
     padding-left: 8px;
     padding-right: 8px;
