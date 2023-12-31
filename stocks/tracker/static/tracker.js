@@ -210,7 +210,6 @@ function toggleStockWatch(cell) {
     })
     .then(result => {
         // Update watched status in row
-        // TODO: Optionally update table when watch is removed from watchlist (required in assignment to update by JS?)
         if (result.status === 200 || result.status === 201) {
             cell.getRow().update({watched: !watched});
         }

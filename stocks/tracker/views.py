@@ -592,7 +592,8 @@ def portfolio(request, portfolio_id):
                     stocks_dict[stock_id]['total_dividend_in_portfolio_currency'])
 
         # Compute metrics
-        # TODO: Currently excludes stocks that have been sold, split these (?), i.e. with and without sold stocks
+        # NOTE: Currently excludes stocks that have been sold
+        # Could also compute metrics that include sold stocks
         metrics_dict['total_price'] = sum([stocks_dict[k]['total_price_in_portfolio_currency'] for k in stocks_dict])
         metrics_dict['total_cost'] = sum([stocks_dict[k]['total_cost'] for k in stocks_dict])
         metrics_dict['total_cost_percentage'] = metrics_dict['total_cost'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0

@@ -81,7 +81,8 @@ DATABASES = {
     }
 }
 
-# TODO: Consider a cache that persists data between runs, to limit the number of API calls
+# NOTE: Consider a cache that persists data between runs, to limit the number of API calls
+# This only matters for local development, for production a different caching mechanism should be used
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
