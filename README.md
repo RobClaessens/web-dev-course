@@ -1,7 +1,7 @@
-# StockTracker - A simple stock tracker
+# StockTracker - A basic stock tracker
 
 ## Introduction
-For the final 'Capstone' project of this web development course, I decided to create a simple stock tracker. Registered
+For the final *Capstone* project of this web development course, I decided to create a basic stock tracker. Registered
 users can add stocks, watch stocks and create portfolios to track their stocks and portfolio performance over time.
 Django was used as back-end framework, while plain JavaScript, HTML and CSS were used for the front-end. Additionally,
 the Tabulator library was used to create tables within the front-end.
@@ -34,7 +34,7 @@ challenge to the project, and it proved good fun to nicely format the tables. To
 formatters that can be found within the `tableutils.js` file.
 
 ## Functionality
-See below the folder structure of the Django project. The project is called *Stocks*, containing a *tracker* app.
+See below the folder structure of the Django project. The project is called *Stocks*, containing a *Tracker* app.
 After the folder and file names, I have indicated their use. Where I didn't change anything of the default Django file,
 I've omitted the description.
 
@@ -72,7 +72,7 @@ I've omitted the description.
         - views.py                      # Contains all views, including the API endpoints
     - db.sqlite3
     - manage.py
-    - requirements.txt                  # Contains all required packages for the project (just Django and requests)
+    - requirements.txt                  # Contains all required packages for the project (just 'Django' and 'requests')
 ```
 
 ## How to run
