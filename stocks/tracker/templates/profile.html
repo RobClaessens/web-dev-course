@@ -20,45 +20,45 @@
 
 {% block body %}
 
-    <div id="profile">
-
         {% if delete %}
-            <div class="error-message">{{ message }}</div>
-            <label class="col-form-label-lg">Are you sure you want to delete your account?</label>
-            <form method="post" action="{% url 'delete_profile' %}">
-                {% csrf_token %}
-                <div class="add-form-buttons">
-                    <input class="btn btn-danger" type="submit" value="Delete">
-                    <a class="btn btn-primary" href="{% url 'profile' %}">Cancel</a>
-                </div>
-            </form>
+            <div id="delete-form">
+                <div class="error-message">{{ message }}</div>
+                <label class="col-form-label-lg">Are you sure you want to delete your account?</label>
+                <form method="post" action="{% url 'delete_profile' %}">
+                    {% csrf_token %}
+                    <div class="add-form-buttons">
+                        <input class="btn btn-danger" type="submit" value="Delete">
+                        <a class="btn btn-primary" href="{% url 'profile' %}">Cancel</a>
+                    </div>
+                </form>
+            </div>
         {% else %}
-            <div class="message">{{ message }}</div>
-            <form id="profile-form" action="{% url 'profile' %}" method="post">
-                {% csrf_token %}
-                <div class="form-group">
-                    <input class="form-control" autofocus type="text" name=username value="{{ user.username }}">
-                </div>
-                <div class="form-group">
-                    <input class="form-control" type="email" name="email" value="{{ user.email }}" placeholder="Email Address">
-                </div>
-                <div class="form-group">
-                    <input class="form-control" type="password" name="password" placeholder="New password" autocomplete="new-password">
-                </div>
-                <div class="form-group">
-                    <input class="form-control" type="password" name="password_confirmation" placeholder="Confirm password">
-                </div>
-                <div class="form-group">
-                    <input class="form-control" type="password" name="ms_api_key" placeholder="New Marketstack API key">
-                </div>
-                <div class="form-group">
-                    <input class="form-control" type="password" name="ms_api_key_confirmation" placeholder="Confirm Marketstack API key">
-                </div>
-                <input class="btn btn-primary" type="submit" value="Update">
-            </form>
+            <div id="profile">
+                <div class="message">{{ message }}</div>
+                <form id="profile-form" action="{% url 'profile' %}" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input class="form-control" autofocus type="text" name=username value="{{ user.username }}">
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" type="email" name="email" value="{{ user.email }}" placeholder="Email Address">
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" type="password" name="password" placeholder="New password" autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" type="password" name="password_confirmation" placeholder="Confirm password">
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" type="password" name="ms_api_key" placeholder="New Marketstack API key">
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" type="password" name="ms_api_key_confirmation" placeholder="Confirm Marketstack API key">
+                    </div>
+                    <input class="btn btn-primary" type="submit" value="Update">
+                </form>
+            </div>
         {% endif %}
-
-    </div>
 
     <script data-user="{{ user }}">
         const data = document.currentScript.dataset;
