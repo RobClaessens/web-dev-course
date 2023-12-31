@@ -16,7 +16,7 @@ class Portfolio(models.Model):
     """Model representing a stock portfolio."""
     name = models.CharField(max_length=32)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolios')
-    balance = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    balance = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     currency = models.CharField(max_length=3, default='EUR')
 
     @property

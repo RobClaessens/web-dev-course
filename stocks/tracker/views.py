@@ -331,14 +331,14 @@ def add_transaction(request, portfolio_id):
                     # Create FiatTransaction
                     transaction = FiatTransaction(date=date,
                                                   portfolio=portfolio,
-                                                  amount=amount if deposit else f"-{amount}",
+                                                  amount=amount if deposit else -amount,
                                                   costs=costs)
 
                     # Save transaction
                     transaction.save()
 
                     # Update portfolio balance
-                    portfolio.balance = float(portfolio.balance) - transaction.amount
+                    portfolio.balance = float(portfolio.balance) + transaction.amount
                     portfolio.balance = float(portfolio.balance) - transaction.costs
                     portfolio.save()
 
