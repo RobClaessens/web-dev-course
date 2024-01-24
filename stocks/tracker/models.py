@@ -78,11 +78,13 @@ class Stock(models.Model):
             response = requests.get(url)
             data = response.json()
             if data.get('error'):
+                print(f"Error updating price of {self.name} ({self.symbol}): {data.get('error').get('message')}")
                 return
             elif data.get('close'):
                 self.ms_price = data.get('close')
                 self.ms_update = datetime.date.today()
                 self.save()
+                print(f"Updated price of {self.name} ({self.symbol}) to {self.ms_price}")
 
         return self.ms_price
 
