@@ -126,7 +126,10 @@ function load_portfolio() {
                                     { title: "ISIN", field: "ISIN", width: 150, headerVertical: true },
                                     { title: "Amount", field: "amount", width: 75, headerVertical: true },
                                     { title: "Price", field: "price", width: 75, headerVertical: true, formatter: currencyFormatter },
-                                    { title: "Weight", field: "weight", width: 75, headerVertical: true, formatter: percentageFormatter },
+                                    {
+                                        title: "Weight", field: "weight", width: 75, headerVertical: true,
+                                        formatter: percentageFormatter, formatterParams: { noColor: true }
+                                    },
                                 ]
                             },
                             {
