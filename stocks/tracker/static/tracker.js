@@ -126,11 +126,12 @@ function load_portfolio() {
                                     { title: "ISIN", field: "ISIN", width: 150, headerVertical: true },
                                     { title: "Amount", field: "amount", width: 75, headerVertical: true },
                                     { title: "Price", field: "price", width: 75, headerVertical: true, formatter: currencyFormatter },
+                                    { title: "Weight", field: "weight", width: 75, headerVertical: true, formatter: percentageFormatter },
                                 ]
                             },
                             {
                                 title: "Performance metrics", headerHozAlign: "center", columns: [
-                                    { title: "Real. price", field: "realized_price", width: 75, headerVertical: true, formatter: currencyFormatter },
+                                    { title: "Cost basis", field: "cost_basis", width: 75, headerVertical: true, formatter: currencyFormatter },
                                     {
                                         title: "Costs", field: "total_cost", width: 75, headerVertical: true, formatter: currencyFormatter,
                                         bottomCalc: () => { return portfolio['metrics']['total_cost'] },

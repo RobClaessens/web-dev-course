@@ -19,6 +19,7 @@ class Position:
     total_dividend: float = 0.0
     total_dividend_in_portfolio_currency: float = 0.0
     total_cost: float = 0.0
+    weight: float = 0.0
     
     # Internal tracking fields
     amount_total: float = 0.0
@@ -36,7 +37,7 @@ class Position:
         return 100 - self.hold_percentage
 
     @property
-    def realized_price(self) -> float:
+    def cost_basis(self) -> float:
         return (self.total_price_tot / self.amount_total) if self.amount_total else 0.0
 
     @property
@@ -47,8 +48,8 @@ class Position:
 
     @property
     def unrealized_pnl_percentage(self) -> float:
-        cost_basis = (self.total_price_tot * self.hold_percentage / 100)
-        return (self.unrealized_pnl / cost_basis * 100) if cost_basis and self.hold_percentage else 0.0
+        total_cost_basis = (self.total_price_tot * self.hold_percentage / 100)
+        return (self.unrealized_pnl / total_cost_basis * 100) if total_cost_basis and self.hold_percentage else 0.0
 
     @property
     def unrealized_pnl_in_portfolio_currency(self) -> float:
@@ -64,8 +65,8 @@ class Position:
 
     @property
     def realized_pnl_percentage(self) -> float:
-        cost_basis = (self.total_price_tot * self.sold_percentage / 100)
-        return (self.realized_pnl / cost_basis * 100) if cost_basis and self.sold_percentage else 0.0
+        total_cost_basis = (self.total_price_tot * self.sold_percentage / 100)
+        return (self.realized_pnl / total_cost_basis * 100) if total_cost_basis and self.sold_percentage else 0.0
 
     @property
     def realized_pnl_in_portfolio_currency(self) -> float:
@@ -101,6 +102,7 @@ class Position:
             'price': self.price,
             'price_in_portfolio_currency': self.price_in_portfolio_currency,
             'amount': self.amount,
+            'weight': self.weight,
             'total_dividend': self.total_dividend,
             'total_dividend_in_portfolio_currency': self.total_dividend_in_portfolio_currency,
             'total_cost': self.total_cost,
@@ -114,7 +116,7 @@ class Position:
             },
             'hold_percentage': self.hold_percentage,
             'sold_percentage': self.sold_percentage,
-            'realized_price': self.realized_price,
+            'cost_basis': self.cost_basis,
             'realized_pnl': self.realized_pnl,
             'realized_pnl_percentage': self.realized_pnl_percentage,
             'realized_pnl_in_portfolio_currency': self.realized_pnl_in_portfolio_currency,
@@ -132,6 +134,8 @@ class PortfolioSummary:
     total_price: float = 0.0
     total_cost: float = 0.0
     total_dividend: float = 0.0
+    total_cost_basis_held: float = 0.0
+    total_cost_basis_sold: float = 0.0
     unrealized_pnl: float = 0.0
     realized_pnl: float = 0.0
     total_return: float = 0.0
@@ -150,13 +154,12 @@ class PortfolioSummary:
 
     @property
     def unrealized_pnl_percentage(self) -> float:
-        return (self.unrealized_pnl / self.total_price * 100) if self.total_price else 0.0
+        return (self.unrealized_pnl / self.total_cost_basis_held * 100) if self.total_cost_basis_held else 0.0
 
     @property
     def realized_pnl_percentage(self) -> float:
-        # Note: realized PnL percentage can be compared to total investment or total price
-        # Here we follow the unrealized_pnl_percentage pattern for consistency
-        return (self.realized_pnl / self.total_price * 100) if self.total_price else 0.0
+        # Note: realized PnL percentage compared to pro-rated cost basis of sold shares
+        return (self.realized_pnl / self.total_cost_basis_sold * 100) if self.total_cost_basis_sold else 0.0
 
     @property
     def total_return_percentage(self) -> float:
@@ -233,10 +236,15 @@ def get_portfolio_data(portfolio: Portfolio) -> Dict[str, Any]:
             pos.total_cost += float(div.costs)
 
     # 4. Calculate Aggregate Metrics
-    # Note: Metrics currently based on all positions in the dictionary
+    summary = PortfolioSummary()
+
+    # 5. Process Fiat Transactions (deposits/withdrawals) for total costs
+    fiat_transactions = portfolio.fiattransactions.all()
+    for ft in fiat_transactions:
+        summary.total_cost += float(ft.costs)
+
     positions_list = sorted(positions_dict.values(), key=lambda p: p.name)
     
-    summary = PortfolioSummary()
     for pos in positions_list:
         summary.total_price += pos.total_price_in_portfolio_currency_tot
         summary.total_cost += pos.total_cost
@@ -244,6 +252,16 @@ def get_portfolio_data(portfolio: Portfolio) -> Dict[str, Any]:
         summary.unrealized_pnl += pos.unrealized_pnl_in_portfolio_currency
         summary.realized_pnl += pos.realized_pnl_in_portfolio_currency
         summary.total_return += pos.total_return_in_portfolio_currency
+        
+        # Pro-rated cost basis for percentage calculations
+        summary.total_cost_basis_held += (pos.total_price_in_portfolio_currency_tot * pos.hold_percentage / 100)
+        summary.total_cost_basis_sold += (pos.total_price_in_portfolio_currency_tot * pos.sold_percentage / 100)
+
+    # 5. Calculate Weights
+    total_market_value = sum([pos.amount * pos.price_in_portfolio_currency for pos in positions_list])
+    if total_market_value:
+        for pos in positions_list:
+            pos.weight = (pos.amount * pos.price_in_portfolio_currency) / total_market_value * 100
 
     return {
         'portfolio': portfolio.serialize(),
