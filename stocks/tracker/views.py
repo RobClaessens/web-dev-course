@@ -537,24 +537,30 @@ def portfolio(request, portfolio_id):
                 stocks_dict[stock_id] = {
                     **stock_dict,
                     'price_in_portfolio_currency': stock_dict['price'] / get_exchange_rate(portfolio.currency, stock_dict['currency']),
-                    'amount': 0,
-                    'total_price': 0,
+                    'amount': {'net': 0, 'tot': 0},
+                    'total_price': {'net': 0, 'tot': 0},
+                    'total_price_in_portfolio_currency': {'net': 0, 'tot': 0},
                     'total_dividend': 0,
-                    'total_price_in_portfolio_currency': 0,
                     'total_dividend_in_portfolio_currency': 0,
                     'total_cost': 0,
                 }
 
-            stocks_dict[stock_id]['amount'] += float(transaction.amount)
-            stocks_dict[stock_id]['total_price'] += float(transaction.amount * transaction.price)
-            stocks_dict[stock_id]['total_price_in_portfolio_currency'] += float(transaction.amount * (transaction.price_in_portfolio_currency or transaction.price))
+            stocks_dict[stock_id]['amount']['net'] += float(transaction.amount)
+            stocks_dict[stock_id]['amount']['tot'] += float(transaction.amount) if transaction.amount > 0 else 0
+            stocks_dict[stock_id]['total_price']['net'] += float(transaction.amount * transaction.price)
+            stocks_dict[stock_id]['total_price']['tot'] += float(transaction.amount * transaction.price) if transaction.amount > 0 else 0
+            stocks_dict[stock_id]['total_price_in_portfolio_currency']['net'] += (
+                float(transaction.amount * (transaction.price_in_portfolio_currency or transaction.price)))
+            stocks_dict[stock_id]['total_price_in_portfolio_currency']['tot'] += (
+                float(transaction.amount * (transaction.price_in_portfolio_currency or transaction.price))) if transaction.amount > 0 else 0
             stocks_dict[stock_id]['total_cost'] += float(transaction.costs)
 
         # Iterate through stock dividends
         for dividend in portfolio.stockdividends.all():
             stock_id = dividend.stock.id
 
-            stocks_dict[stock_id]['amount'] += float(dividend.amount)
+            stocks_dict[stock_id]['amount']['net'] += float(dividend.amount)
+            stocks_dict[stock_id]['amount']['tot'] += float(dividend.amount)
             stocks_dict[stock_id]['total_cost'] += float(dividend.costs)
 
         # Iterate through fiat dividends
@@ -566,35 +572,49 @@ def portfolio(request, portfolio_id):
             stocks_dict[stock_id]['total_cost'] += float(dividend.costs)
 
         # Remove stocks with zero amount
-        [stocks_dict.pop(k) for k in list(stocks_dict.keys()) if stocks_dict[k]['amount'] == 0]
+        # TODO: Include stocks that have been sold, preventing division by zero
+        # TODO: Implement checkbox to toggle between including and excluding sold stocks
+        # [stocks_dict.pop(k) for k in list(stocks_dict.keys()) if stocks_dict[k]['amount']['net'] == 0]
 
         # Calculate realized price and unrealized PnL
         for stock_id in stocks_dict:
-            stocks_dict[stock_id]['realized_price'] = stocks_dict[stock_id]['total_price'] / stocks_dict[stock_id]['amount']
+            stocks_dict[stock_id]['hold_percentage'] = stocks_dict[stock_id]['amount']['net'] / stocks_dict[stock_id]['amount']['tot'] * 100
+            stocks_dict[stock_id]['sold_percentage'] = 100 - stocks_dict[stock_id]['hold_percentage']
+            stocks_dict[stock_id]['realized_price'] = stocks_dict[stock_id]['total_price']['tot'] / stocks_dict[stock_id]['amount']['tot']
+            # Unrealized PnL
             stocks_dict[stock_id]['unrealized_pnl'] = (
-                    stocks_dict[stock_id]['amount'] * stocks_dict[stock_id]['price'] -
-                    stocks_dict[stock_id]['total_price'] -
-                    stocks_dict[stock_id]['total_cost'])
+                    stocks_dict[stock_id]['amount']['net'] * stocks_dict[stock_id]['price'] -
+                    stocks_dict[stock_id]['total_price']['tot'] * stocks_dict[stock_id]['hold_percentage'] / 100 -
+                    stocks_dict[stock_id]['total_cost'] * stocks_dict[stock_id]['hold_percentage'] / 100)
             stocks_dict[stock_id]['unrealized_pnl_percentage'] = (
-                    stocks_dict[stock_id]['unrealized_pnl'] / stocks_dict[stock_id]['total_price'] * 100) \
-                if stocks_dict[stock_id]['total_price'] else 0
+                    stocks_dict[stock_id]['unrealized_pnl'] /
+                    (stocks_dict[stock_id]['total_price']['tot'] * stocks_dict[stock_id]['hold_percentage'] / 100) * 100) \
+                if stocks_dict[stock_id]['total_price'] and stocks_dict[stock_id]['hold_percentage'] else 0
             stocks_dict[stock_id]['unrealized_pnl_in_portfolio_currency'] = (
-                    stocks_dict[stock_id]['amount'] * stocks_dict[stock_id]['price_in_portfolio_currency'] -
-                    stocks_dict[stock_id]['total_price_in_portfolio_currency'] -
-                    stocks_dict[stock_id]['total_cost'])
-            stocks_dict[stock_id]['total_return'] = (stocks_dict[stock_id]['unrealized_pnl'] +
-                                                     stocks_dict[stock_id]['total_dividend'])
+                    stocks_dict[stock_id]['amount']['net'] * stocks_dict[stock_id]['price_in_portfolio_currency'] -
+                    stocks_dict[stock_id]['total_price_in_portfolio_currency']['tot'] * stocks_dict[stock_id]['hold_percentage'] / 100 -
+                    stocks_dict[stock_id]['total_cost'] * stocks_dict[stock_id]['hold_percentage'] / 100) \
+            # Total return
+            stocks_dict[stock_id]['total_return'] = (
+                    stocks_dict[stock_id]['amount']['net'] * stocks_dict[stock_id]['price'] -
+                    stocks_dict[stock_id]['total_price']['net'] - stocks_dict[stock_id]['total_cost'] +
+                    stocks_dict[stock_id]['total_dividend'])
             stocks_dict[stock_id]['total_return_percentage'] = (
-                    stocks_dict[stock_id]['total_return'] / stocks_dict[stock_id]['total_price'] * 100) \
+                    stocks_dict[stock_id]['total_return'] / stocks_dict[stock_id]['total_price']['tot'] * 100) \
                 if stocks_dict[stock_id]['total_price'] else 0
             stocks_dict[stock_id]['total_return_in_portfolio_currency'] = (
-                    stocks_dict[stock_id]['unrealized_pnl_in_portfolio_currency'] +
+                    stocks_dict[stock_id]['amount']['net'] * stocks_dict[stock_id]['price_in_portfolio_currency'] -
+                    stocks_dict[stock_id]['total_price_in_portfolio_currency']['net'] - stocks_dict[stock_id]['total_cost'] +
                     stocks_dict[stock_id]['total_dividend_in_portfolio_currency'])
+
+            # Replace nested amount dictionary with net amount
+            stocks_dict[stock_id]['amount'] = stocks_dict[stock_id]['amount']['net']
 
         # Compute metrics
         # NOTE: Currently excludes stocks that have been sold
         # Could also compute metrics that include sold stocks
-        metrics_dict['total_price'] = sum([stocks_dict[k]['total_price_in_portfolio_currency'] for k in stocks_dict])
+        # TODO: Include sold stocks in metrics, but first commit and push!
+        metrics_dict['total_price'] = sum([stocks_dict[k]['total_price_in_portfolio_currency']['tot'] for k in stocks_dict])
         metrics_dict['total_cost'] = sum([stocks_dict[k]['total_cost'] for k in stocks_dict])
         metrics_dict['total_cost_percentage'] = metrics_dict['total_cost'] / metrics_dict['total_price'] * 100 if metrics_dict['total_price'] else 0
         metrics_dict['total_dividend'] = sum([stocks_dict[k]['total_dividend_in_portfolio_currency'] for k in stocks_dict])
