@@ -57,6 +57,23 @@ class Position:
                 self.total_cost * self.hold_percentage / 100)
 
     @property
+    def realized_pnl(self) -> float:
+        return (self.total_price_tot - self.total_price_net - 
+                self.total_price_tot * self.sold_percentage / 100 - 
+                self.total_cost * self.sold_percentage / 100)
+
+    @property
+    def realized_pnl_percentage(self) -> float:
+        cost_basis = (self.total_price_tot * self.sold_percentage / 100)
+        return (self.realized_pnl / cost_basis * 100) if cost_basis and self.sold_percentage else 0.0
+
+    @property
+    def realized_pnl_in_portfolio_currency(self) -> float:
+        return (self.total_price_in_portfolio_currency_tot - self.total_price_in_portfolio_currency_net - 
+                self.total_price_in_portfolio_currency_tot * self.sold_percentage / 100 - 
+                self.total_cost * self.sold_percentage / 100)
+
+    @property
     def total_return(self) -> float:
         return (self.amount * self.price - 
                 self.total_price_net - self.total_cost + 
@@ -98,6 +115,9 @@ class Position:
             'hold_percentage': self.hold_percentage,
             'sold_percentage': self.sold_percentage,
             'realized_price': self.realized_price,
+            'realized_pnl': self.realized_pnl,
+            'realized_pnl_percentage': self.realized_pnl_percentage,
+            'realized_pnl_in_portfolio_currency': self.realized_pnl_in_portfolio_currency,
             'unrealized_pnl': self.unrealized_pnl,
             'unrealized_pnl_percentage': self.unrealized_pnl_percentage,
             'unrealized_pnl_in_portfolio_currency': self.unrealized_pnl_in_portfolio_currency,
@@ -113,6 +133,7 @@ class PortfolioSummary:
     total_cost: float = 0.0
     total_dividend: float = 0.0
     unrealized_pnl: float = 0.0
+    realized_pnl: float = 0.0
     total_return: float = 0.0
 
     @property
@@ -132,6 +153,12 @@ class PortfolioSummary:
         return (self.unrealized_pnl / self.total_price * 100) if self.total_price else 0.0
 
     @property
+    def realized_pnl_percentage(self) -> float:
+        # Note: realized PnL percentage can be compared to total investment or total price
+        # Here we follow the unrealized_pnl_percentage pattern for consistency
+        return (self.realized_pnl / self.total_price * 100) if self.total_price else 0.0
+
+    @property
     def total_return_percentage(self) -> float:
         return (self.total_return / self.total_price * 100) if self.total_price else 0.0
 
@@ -142,6 +169,7 @@ class PortfolioSummary:
             'total_dividend_percentage': self.total_dividend_percentage,
             'total_investment': self.total_investment,
             'unrealized_pnl_percentage': self.unrealized_pnl_percentage,
+            'realized_pnl_percentage': self.realized_pnl_percentage,
             'total_return_percentage': self.total_return_percentage,
         })
         return result
@@ -214,6 +242,7 @@ def get_portfolio_data(portfolio: Portfolio) -> Dict[str, Any]:
         summary.total_cost += pos.total_cost
         summary.total_dividend += pos.total_dividend_in_portfolio_currency
         summary.unrealized_pnl += pos.unrealized_pnl_in_portfolio_currency
+        summary.realized_pnl += pos.realized_pnl_in_portfolio_currency
         summary.total_return += pos.total_return_in_portfolio_currency
 
     return {
