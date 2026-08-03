@@ -60,7 +60,7 @@ class Stock(models.Model):
     def _update_ms_symbol(self, api_key):
         # Retrieve symbol if not cached
         if not self.ms_symbol:
-            url = f"http://api.marketstack.com/v1/tickers?access_key={api_key}&exchange={self.exchange}&search={self.symbol}"
+            url = f"http://api.marketstack.com/v2/tickers?access_key={api_key}&exchange={self.exchange}&search={self.symbol}"
             response = requests.get(url)
             data = response.json()
             if data.get('error'):
@@ -74,7 +74,7 @@ class Stock(models.Model):
     def _update_ms_price(self, api_key):
         # Update price if not yet updated today
         if self.ms_update != datetime.date.today():
-            url = f"http://api.marketstack.com/v1/tickers/{self._update_ms_symbol(api_key)}/eod/latest?access_key={api_key}"
+            url = f"http://api.marketstack.com/v2/tickers/{self._update_ms_symbol(api_key)}/eod/latest?access_key={api_key}"
             response = requests.get(url)
             data = response.json()
             if data.get('error'):
