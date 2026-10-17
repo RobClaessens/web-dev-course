@@ -1,10 +1,12 @@
 import datetime
 from unittest import mock
 
+from django.core.cache import cache
 from django.test import TestCase
 
 from .models import User, Portfolio, Stock, StockTransaction, StockDividend, FiatTransaction, FiatDividend
 from .services import get_portfolio_data
+from .utils import get_exchange_rate
 
 
 # Amount of each currency per USD
@@ -173,3 +175,36 @@ class PortfolioDataTests(TestCase):
         self.assertAlmostEqual(metrics["total_return"],
                                metrics["realized_pnl"] + metrics["unrealized_pnl"] + 10 - 2 - 4)
         self.assertAlmostEqual(metrics["total_cost"], costs)
+
+
+class ExchangeRateTests(TestCase):
+
+    def setUp(self):
+        cache.clear()
+
+    @staticmethod
+    def response(data):
+        return mock.Mock(json=mock.Mock(return_value=data))
+
+    @mock.patch("tracker.utils.requests.get")
+    def test_historical_rate_is_used_and_cached(self, get):
+        get.return_value = self.response({"rates": {"USD": 1.0, "EUR": 0.8}})
+
+        self.assertAlmostEqual(get_exchange_rate("EUR", "USD", "2024-03-15"), 1.25)
+        self.assertAlmostEqual(get_exchange_rate("EUR", "USD", "2024-03-15"), 1.25)
+        get.assert_called_once()
+        self.assertIn("historical/2024-03-15.json", get.call_args.args[0])
+
+    @mock.patch("tracker.utils.requests.get")
+    def test_falls_back_to_latest_rate(self, get):
+        get.side_effect = [self.response({"error": True}), self.response({"rates": {"USD": 1.0, "EUR": 0.9}})]
+
+        self.assertAlmostEqual(get_exchange_rate("EUR", "USD", "2024-03-15"), 1 / 0.9)
+        self.assertIn("latest.json", get.call_args.args[0])
+
+    @mock.patch("tracker.utils.requests.get")
+    def test_todays_date_uses_latest_rate(self, get):
+        get.return_value = self.response({"rates": {"USD": 1.0, "EUR": 0.9}})
+
+        get_exchange_rate("EUR", "USD", datetime.date.today().isoformat())
+        self.assertIn("latest.json", get.call_args.args[0])

@@ -302,7 +302,7 @@ def add_transaction(request, portfolio_id):
                     buy = transaction_method == "buy"
 
                     # Get exchange rate
-                    rate = get_exchange_rate(portfolio.currency, stock.currency)
+                    rate = get_exchange_rate(portfolio.currency, stock.currency, date)
 
                     # Convert price to portfolio currency
                     price_in_portfolio_currency = price / rate
@@ -389,7 +389,7 @@ def add_dividend(request, portfolio_id):
             costs = float(request.POST["costs"])
 
             # Get exchange rate
-            rate = get_exchange_rate(portfolio.currency, stock.currency)
+            rate = get_exchange_rate(portfolio.currency, stock.currency, date)
 
             # Create dividend and save
             match dividend_type:
