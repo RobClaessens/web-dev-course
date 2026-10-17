@@ -3,6 +3,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 import requests
 
+from .utils import get_exchange_rate
+
 
 class User(AbstractUser):
     created = models.DateField(auto_now_add=True)
@@ -81,7 +83,17 @@ class Stock(models.Model):
                 print(f"Error updating price of {self.name} ({self.symbol}): {data.get('error').get('message')}")
                 return
             elif data.get('close'):
-                self.ms_price = data.get('close')
+                # Convert the price if it is quoted in another currency, e.g. a US listing of a stock bought in EUR
+                price = data.get('close')
+                price_currency = (data.get('price_currency') or self.currency).upper()
+                if price_currency != self.currency:
+                    rate = get_exchange_rate(price_currency, self.currency)
+                    if not rate:
+                        print(f"Error updating price of {self.name} ({self.symbol}): "
+                              f"no exchange rate from {price_currency} to {self.currency}")
+                        return self.ms_price
+                    price = round(price * rate, 2)
+                self.ms_price = price
                 self.ms_update = datetime.date.today()
                 self.save()
                 print(f"Updated price of {self.name} ({self.symbol}) to {self.ms_price}")

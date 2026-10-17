@@ -226,3 +226,37 @@ class PortfoliosViewTests(TestCase):
         response = self.client.get(f"/portfolios/{self.portfolio.id}?closed=1")
         self.assertContains(response, f'href="/portfolios/{self.portfolio.id}">Hide closed positions')
         self.assertContains(response, 'data-show-closed="true"')
+
+
+class StockPriceTests(TestCase):
+
+    def setUp(self):
+        self.stock = Stock.objects.create(name="Circle", symbol="CRCL", exchange="OOTC", ISIN="US0000000002",
+                                          currency="EUR", ms_symbol="CRCL")
+
+    @staticmethod
+    def response(data):
+        return mock.Mock(json=mock.Mock(return_value=data))
+
+    @mock.patch("tracker.models.get_exchange_rate", side_effect=fake_exchange_rate)
+    @mock.patch("tracker.models.requests.get")
+    def test_price_in_other_currency_is_converted(self, get, _):
+        get.return_value = self.response({"close": 82.2, "price_currency": "USD"})
+
+        self.assertAlmostEqual(float(self.stock.update_price("key")), 68.5)
+
+    @mock.patch("tracker.models.get_exchange_rate", side_effect=fake_exchange_rate)
+    @mock.patch("tracker.models.requests.get")
+    def test_price_in_stock_currency_is_kept(self, get, rate):
+        get.return_value = self.response({"close": 73.2, "price_currency": "EUR"})
+
+        self.assertAlmostEqual(float(self.stock.update_price("key")), 73.2)
+        rate.assert_not_called()
+
+    @mock.patch("tracker.models.get_exchange_rate", return_value=None)
+    @mock.patch("tracker.models.requests.get")
+    def test_price_not_updated_without_exchange_rate(self, get, _):
+        get.return_value = self.response({"close": 82.2, "price_currency": "USD"})
+
+        self.assertIsNone(self.stock.update_price("key"))
+        self.assertIsNone(self.stock.ms_update)
