@@ -208,3 +208,21 @@ class ExchangeRateTests(TestCase):
 
         get_exchange_rate("EUR", "USD", datetime.date.today().isoformat())
         self.assertIn("latest.json", get.call_args.args[0])
+
+
+class PortfoliosViewTests(TestCase):
+
+    def setUp(self):
+        user = User.objects.create_user(username="investor", password="secret")
+        self.portfolio = Portfolio.objects.create(name="Test", user=user, currency="EUR")
+        self.client.force_login(user)
+
+    def test_closed_positions_hidden_by_default(self):
+        response = self.client.get(f"/portfolios/{self.portfolio.id}")
+        self.assertContains(response, f'href="/portfolios/{self.portfolio.id}?closed=1">Show closed positions')
+        self.assertContains(response, 'data-show-closed="false"')
+
+    def test_closed_positions_shown_on_request(self):
+        response = self.client.get(f"/portfolios/{self.portfolio.id}?closed=1")
+        self.assertContains(response, f'href="/portfolios/{self.portfolio.id}">Hide closed positions')
+        self.assertContains(response, 'data-show-closed="true"')

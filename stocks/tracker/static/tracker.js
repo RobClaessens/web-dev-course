@@ -113,10 +113,16 @@ function load_portfolio() {
 
                 // Create Tabulator on DOM element with portfolio stocks, if stocks div can be found
                 if (document.querySelector('#stocks')) {
+                    // Closed positions are only shown on request; their realized PnL is always included in the totals
+                    const showClosed = typeof showClosedPositions !== 'undefined' && showClosedPositions;
+
                     new Tabulator("#stocks", {
                         maxHeight: "100%",
-                        data: portfolio['stocks'],
+                        data: portfolio['stocks'].filter(stock => showClosed || stock.amount > 0),
                         layout: "fitDataTable",
+                        rowFormatter: row => {
+                            if (row.getData().amount <= 0) { row.getElement().classList.add('closed-position'); }
+                        },
                         columns: [
                             { title: "Name", field: "name", width: 150, headerHozAlign: "center", frozen: true },
                             {

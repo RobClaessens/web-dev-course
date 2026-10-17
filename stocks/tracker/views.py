@@ -34,6 +34,7 @@ def portfolios(request, portfolio_id=None):
         "watchlist": "false",
         "portfolios": [p.serialize() for p in request.user.portfolios.all()],
         "portfolio_id": portfolio_id or "null",
+        "show_closed": request.GET.get("closed") == "1",
     })
 
 

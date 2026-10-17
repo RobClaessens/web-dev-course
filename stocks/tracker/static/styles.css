@@ -137,3 +137,6 @@
 .hide-header {
     height: 0;
 }
+.tabulator-row.closed-position {
+    color: gray;
+}
