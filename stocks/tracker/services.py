@@ -15,13 +15,12 @@ EPSILON = 1e-6
 class Book:
     """Average cost bookkeeping of a single position, in a single currency.
 
-    Costs of buys are part of the cost basis, costs of sells reduce the realized PnL and costs of
-    dividends (e.g. withholding tax) reduce the dividend income. When a position is fully sold, its cost
-    basis drops to zero, so a reopened position starts with a fresh cost basis. Realized PnL, dividends
-    and costs accumulate over the entire history of the stock.
+    Like DeGiro, costs of buys and sells are realized immediately, as they are paid right away, so the cost
+    basis and unrealized PnL exclude them. Costs of dividends (e.g. withholding tax) reduce the dividend
+    income. When a position is fully sold, its cost basis drops to zero, so a reopened position starts with
+    a fresh cost basis. Realized PnL, dividends and costs accumulate over the entire history of the stock.
     """
-    cost_basis: float = 0.0       # Cost of the currently held shares, including buy costs
-    held_costs: float = 0.0       # Buy costs included in the cost basis
+    cost_basis: float = 0.0       # Cost of the currently held shares, excluding costs
     peak_cost_basis: float = 0.0  # Highest cost basis held at any time, i.e. the maximum capital committed
     bought: float = 0.0           # Gross value of all shares ever bought, excluding costs
     cost_basis_sold: float = 0.0  # Cost basis of all shares ever sold
@@ -32,16 +31,15 @@ class Book:
 
     def buy(self, value: float, costs: float):
         self.bought += value
-        self.cost_basis += value + costs
-        self.held_costs += costs
+        self.cost_basis += value
         self.peak_cost_basis = max(self.peak_cost_basis, self.cost_basis)
+        self.realized_pnl -= costs
         self.costs += costs
 
     def sell(self, fraction: float, proceeds: float, costs: float):
         """Sell a fraction of the currently held shares at their average cost."""
         sold = self.cost_basis * fraction
         self.cost_basis -= sold
-        self.held_costs -= self.held_costs * fraction
         self.cost_basis_sold += sold
         self.realized_pnl += proceeds - costs - sold
         self.costs += costs
@@ -122,7 +120,7 @@ class Position:
                 self.opened = None
 
     def apply_stock_dividend(self, div):
-        # Free shares dilute the average cost; their costs are added to the cost basis
+        # Free shares dilute the average cost; their costs are realized like those of a buy
         if not self.is_open:
             self.opened = div.date
         self.amount += float(div.amount)
@@ -161,12 +159,12 @@ class Position:
 
     @property
     def cost_basis(self) -> float:
-        """Average price per share of the current position, excluding buy costs (which are part of the PnL)."""
-        return (self.local.cost_basis - self.local.held_costs) / self.amount if self.is_open else 0.0
+        """Average price per share of the current position, excluding costs (which are part of the realized PnL)."""
+        return self.local.cost_basis / self.amount if self.is_open else 0.0
 
     @property
     def cost_basis_in_portfolio_currency(self) -> float:
-        return (self.portfolio.cost_basis - self.portfolio.held_costs) / self.amount if self.is_open else 0.0
+        return self.portfolio.cost_basis / self.amount if self.is_open else 0.0
 
     @property
     def unrealized_pnl(self) -> float:

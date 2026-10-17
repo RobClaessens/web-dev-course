@@ -96,14 +96,14 @@ class PortfolioDataTests(TestCase):
         self.assertAlmostEqual(pos["cost_basis"], 200)
         self.assertAlmostEqual(pos["realized_pnl"], 500)
 
-    def test_buy_costs_in_cost_basis_and_sell_costs_in_realized_pnl(self, _):
+    def test_costs_are_realized_immediately(self, _):
         self.trade(0, 10, 100, costs=5)
         self.trade(1, -5, 150, costs=3)
 
         pos = self.position()
-        self.assertAlmostEqual(pos["cost_basis"], 100)  # Excludes costs, which are part of the PnL
-        self.assertAlmostEqual(pos["realized_pnl"], 750 - 3 - 502.5)
-        self.assertAlmostEqual(pos["unrealized_pnl"], 5 * 200 - 502.5)
+        self.assertAlmostEqual(pos["cost_basis"], 100)
+        self.assertAlmostEqual(pos["realized_pnl"], 750 - 500 - 5 - 3)
+        self.assertAlmostEqual(pos["unrealized_pnl"], 5 * 200 - 500)
         self.assertAlmostEqual(pos["total_cost"], 8)
 
     def test_stock_dividend_dilutes_cost_basis(self, _):
@@ -113,7 +113,8 @@ class PortfolioDataTests(TestCase):
         pos = self.position()
         self.assertAlmostEqual(pos["amount"], 12)
         self.assertAlmostEqual(pos["cost_basis"], 1000 / 12)
-        self.assertAlmostEqual(pos["unrealized_pnl"], 12 * 200 - 1001)
+        self.assertAlmostEqual(pos["unrealized_pnl"], 12 * 200 - 1000)
+        self.assertAlmostEqual(pos["realized_pnl"], -1)
 
     def test_fiat_dividend_is_part_of_total_return_net_of_costs(self, _):
         self.trade(0, 10, 200)
@@ -133,13 +134,13 @@ class PortfolioDataTests(TestCase):
         self.trade(2, 10, 120, costs=1, stock=self.usd_stock, price_in_portfolio_currency=100)
 
         pos = self.position(self.usd_stock)
-        self.assertAlmostEqual(pos["realized_pnl"], 1320 - 3.6 - 1102.2)
-        self.assertAlmostEqual(pos["realized_pnl_in_portfolio_currency"], 1100 - 3 - 1002)
+        self.assertAlmostEqual(pos["realized_pnl"], 1320 - 1100 - 2.2 - 3.6 - 1.2)
+        self.assertAlmostEqual(pos["realized_pnl_in_portfolio_currency"], 1100 - 1000 - 2 - 3 - 1)
         self.assertAlmostEqual(pos["cost_basis"], 120)
         self.assertAlmostEqual(pos["cost_basis_in_portfolio_currency"], 100)
         self.assertAlmostEqual(pos["price_in_portfolio_currency"], 110)
-        self.assertAlmostEqual(pos["unrealized_pnl"], 120 - 1.2)
-        self.assertAlmostEqual(pos["unrealized_pnl_in_portfolio_currency"], 100 - 1)
+        self.assertAlmostEqual(pos["unrealized_pnl"], 120)
+        self.assertAlmostEqual(pos["unrealized_pnl_in_portfolio_currency"], 100)
         self.assertAlmostEqual(pos["total_cost"], 2 * 1.1 + 3 * 1.2 + 1.2)
         self.assertAlmostEqual(pos["total_cost_in_portfolio_currency"], 6)
 
